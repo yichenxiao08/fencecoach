@@ -2,6 +2,7 @@
 
 import json
 import time
+from http.client import HTTPException
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
@@ -20,7 +21,7 @@ def main():
         try:
             call("/health")
             break
-        except URLError:
+        except (URLError, ConnectionError, TimeoutError, HTTPException):
             time.sleep(1)
     else:
         raise RuntimeError("Container did not become healthy")

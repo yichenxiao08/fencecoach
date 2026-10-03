@@ -288,7 +288,24 @@ def build_coach_graph(request: CoachRequest, mode: Literal["demo", "bedrock"] = 
             report = _demo_report(request, list(state["sources"].values()))
             incoming = outgoing = 0
         else:
-            result = formatter.invoke([SystemMessage(content=REPORT_PROMPT), *state["messages"]])
+            # Keep agent tool-call history out of the formatter's separate schema-tool context.
+            evidence_payload = {
+                "question": request.question,
+                "skill_level": request.skill_level,
+                "metrics": metrics,
+                "knowledge": [source.model_dump() for source in state["sources"].values()],
+                "tool_results": [
+                    message.content
+                    for message in state["messages"]
+                    if isinstance(message, ToolMessage)
+                ],
+            }
+            result = formatter.invoke(
+                [
+                    SystemMessage(content=REPORT_PROMPT),
+                    HumanMessage(content=json.dumps(evidence_payload)),
+                ]
+            )
             if result.get("parsing_error") or result.get("parsed") is None:
                 raise EvidenceValidationError(
                     "The model did not produce a valid structured report."

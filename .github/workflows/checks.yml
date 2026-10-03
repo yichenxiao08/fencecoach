@@ -27,5 +27,5 @@ jobs:
       - name: Exercise the container
         run: |
           docker run -d --name fencecoach-ci -p 127.0.0.1:8001:8000 fencecoach:ci
-          trap 'docker rm -f fencecoach-ci' EXIT
+          trap 'docker logs fencecoach-ci; docker rm -f fencecoach-ci' EXIT
           python scripts/container_smoke.py
