@@ -17,6 +17,10 @@ Open http://127.0.0.1:8000 and select **Explore sample session**, then **Review 
 
 Import your own measurements using **Import session**. Download the sample JSON in the import dialog for the format. Each measurement needs a unique source ID, name, value, unit and confidence. Timestamps and a same-unit baseline are optional. Sessions and reports survive restarts in local SQLite at `data/fencecoach.sqlite3`. You can export a session or report as JSON.
 
+## Design prototypes
+
+Open http://127.0.0.1:8000/static/prototypes-compare.html to compare three clickable mobile design directions, or http://127.0.0.1:8000/static/prototypes.html for the guided gallery. Walk through training, camera setup, replay, progress and a sample coaching conversation. These prototypes use generated imagery and synthetic measurements; camera capture, playback and coach replies are simulated. See [the design study](docs/design-study.md) for references and the recommended direction.
+
 ## Live AI
 
 Copy `.env.example` to `.env`. Set `BEDROCK_CHAT_MODEL_ID` to a Bedrock Converse model that supports tool calls and structured outputs in your AWS region. Set up AWS credentials through the normal AWS SDK credential chain, then restart the server and select **Live AI**. A configured model ID enables the option; it does not verify credentials or provider access. Provider charges apply.

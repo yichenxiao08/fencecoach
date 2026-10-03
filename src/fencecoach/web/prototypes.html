@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>FenceCoach · Three design directions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="prototypes.css" />
+    <script src="prototypes.js" defer></script>
+  </head>
+  <body>
+    <header class="study-header">
+      <a href="/" class="study-brand"
+        >FENCECOACH<span> DESIGN STUDY / 01</span></a
+      ><a href="prototypes-compare.html" class="back-link">Compare all three ↗</a>
+    </header>
+    <main class="study">
+      <div class="study-intro">
+        <div>
+          <p class="overline">A NEW FEEL FOR YOUR TRAINING</p>
+          <h1>Made for the piste.</h1>
+        </div>
+        <p>
+          Three directions inspired by HomeCourt’s training experience.<br />Pick
+          a style. Walk through a session.
+        </p>
+      </div>
+      <div class="direction-switch" role="group" aria-label="Design direction">
+        <button data-concept="piste" aria-pressed="true">
+          <span>01</span>
+          <div>
+            <strong>Piste</strong
+            ><small>Bright. Athletic. Training first.</small>
+          </div>
+        </button>
+        <button data-concept="studio" aria-pressed="false">
+          <span>02</span>
+          <div>
+            <strong>Replay Studio</strong
+            ><small>Dark. Precise. Footage first.</small>
+          </div>
+        </button>
+        <button data-concept="journal" aria-pressed="false">
+          <span>03</span>
+          <div>
+            <strong>Training Journal</strong
+            ><small>Quiet. Personal. One focus.</small>
+          </div>
+        </button>
+      </div>
+      <div class="design-layout">
+        <aside class="design-notes">
+          <p class="overline">THE DIRECTION</p>
+          <h2 id="direction-title"></h2>
+          <p id="direction-description"></p>
+          <div id="direction-points"></div>
+          <div class="flow-control">
+            <p class="overline">TRY THE FLOW</p>
+            <div id="flow-buttons"></div>
+          </div>
+          <a id="full-preview" class="full-preview" href="?focus=1"
+            >Open full preview ↗</a
+          >
+          <p class="prototype-note">
+            Interactive design prototype. Imagery, measurements and coach
+            replies are illustrative. Camera, video analysis and AI calls are
+            simulated.
+          </p>
+        </aside>
+        <div class="phone-stage">
+          <div class="phone-frame" id="phone">
+            <div class="phone-status">
+              <span>9:41</span
+              ><span class="status-icons">▮▮▮ <span>◒</span> ▰</span>
+            </div>
+            <div id="app-scroll" class="app-scroll">
+              <div id="screen"></div>
+            </div>
+            <nav class="app-nav" id="app-nav" aria-label="App navigation"></nav>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+        <aside class="interaction-note">
+          <span class="interaction-number" id="screen-number">01 / 05</span>
+          <h3 id="screen-name"></h3>
+          <p id="screen-purpose"></p>
+          <div class="mini-flow">
+            <span>Choose a drill</span><i>↓</i><span>Set up your camera</span
+            ><i>↓</i><span>Review one movement</span><i>↓</i
+            ><span>Know what to practice next</span>
+          </div>
+          <div class="reference-note">
+            <p class="overline">WHAT I TOOK FROM HOMECOURT</p>
+            <p>
+              Camera-led practice, bold readable feedback, visual activities,
+              and a clear reason to come back.
+            </p>
+            <a href="https://www.homecourt.ai/" target="_blank" rel="noopener"
+              >Official product reference ↗</a
+            ><a
+              href="https://apps.apple.com/us/app/homecourt-basketball-training/id1258520424"
+              target="_blank"
+              rel="noopener"
+              >Published app screens ↗</a
+            >
+          </div>
+        </aside>
+      </div>
+    </main>
+    <div id="toast" class="toast" role="status" hidden></div>
+  </body>
+</html>

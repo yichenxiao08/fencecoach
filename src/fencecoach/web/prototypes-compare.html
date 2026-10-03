@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>FenceCoach · Compare the prototypes</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #ecebe7; color: #232824; font: 15px/1.5 system-ui, sans-serif; }
+      main { max-width: 1320px; margin: auto; padding: 36px 26px; }
+      header { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+      .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .17em; }
+      h1 { margin: 8px 0; font-size: clamp(28px, 4vw, 46px); line-height: 1.1; letter-spacing: -.05em; }
+      header p { color: #606660; margin: 12px 0 22px; }
+      a { color: inherit; text-underline-offset: 4px; }
+      header a { white-space: nowrap; font-weight: 650; }
+      .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 25px; }
+      .concept-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+      h2 { font-size: 20px; margin: 16px 0 0; letter-spacing: -.04em; }
+      .concept-head a { font-size: 12px; }
+      .description { color: #626962; margin: 5px 0 17px; font-size: 13px; }
+      iframe { display: block; width: 100%; height: 730px; border: 6px solid #242725; border-radius: 32px; background: white; box-shadow: 0 16px 36px #22222214; }
+      footer { margin-top: 24px; color: #646a65; font-size: 12px; }
+      footer strong { color: #303630; }
+      @media(max-width: 900px) { .grid { grid-template-columns: 1fr; max-width: 420px; margin: auto; } header { display: block; } iframe { height: 760px; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <span class="eyebrow">FENCECOACH / DESIGN STUDY 01</span>
+          <h1>Three ways to train.</h1>
+          <p>Explore each phone below. Choose the direction that feels like you.</p>
+        </div>
+        <a href="prototypes.html">Open the guided gallery ↗</a>
+      </header>
+      <div class="grid">
+        <section>
+          <div class="concept-head"><h2>01 / Piste</h2><a href="prototypes.html?concept=piste&screen=home">Explore ↗</a></div>
+          <p class="description">Bright, athletic, and built around starting practice.</p>
+          <iframe title="Piste interactive prototype" src="prototypes.html?concept=piste&screen=home&focus=1"></iframe>
+        </section>
+        <section>
+          <div class="concept-head"><h2>02 / Replay Studio</h2><a href="prototypes.html?concept=studio&screen=review">Explore ↗</a></div>
+          <p class="description">Immersive footage with one clear coaching takeaway.</p>
+          <iframe title="Replay Studio interactive prototype" src="prototypes.html?concept=studio&screen=review&focus=1"></iframe>
+        </section>
+        <section>
+          <div class="concept-head"><h2>03 / Training Journal</h2><a href="prototypes.html?concept=journal&screen=home">Explore ↗</a></div>
+          <p class="description">A daily intention, deliberate practice, and progress.</p>
+          <iframe title="Training Journal interactive prototype" src="prototypes.html?concept=journal&screen=home&focus=1"></iframe>
+        </section>
+      </div>
+      <footer><strong>Design recommendation:</strong> Piste for the home screen, Replay Studio for session review.<br />Interactive prototypes with generated imagery and synthetic measurements. Camera capture, video playback and coach replies are simulated. Research: <a href="https://www.homecourt.ai/">HomeCourt’s official product site</a> and published app screenshots.</footer>
+    </main>
+  </body>
+</html>
