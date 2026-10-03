@@ -1,0 +1,14 @@
+services:
+  fencecoach:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      BEDROCK_CHAT_MODEL_ID: ${BEDROCK_CHAT_MODEL_ID:-}
+      BEDROCK_EMBEDDING_MODEL_ID: ${BEDROCK_EMBEDDING_MODEL_ID:-}
+    volumes:
+      - fencecoach-data:/app/data
+    restart: unless-stopped
+volumes:
+  fencecoach-data:

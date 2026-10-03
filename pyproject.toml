@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fencecoach"
-version = "0.1.0"
+version = "0.2.0"
 description = "Evidence-grounded AI coaching for fencing practice"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
   "fastapi>=0.115",
   "uvicorn[standard]>=0.30",
@@ -18,9 +18,18 @@ dependencies = [
   "langchain-text-splitters>=1.0",
 ]
 
+[project.optional-dependencies]
+dev = ["httpx>=0.28", "ruff==0.16.10"]
+
+[tool.setuptools.package-data]
+fencecoach = ["web/*"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py311"
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "UP", "SIM"]

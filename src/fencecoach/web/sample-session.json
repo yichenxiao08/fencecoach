@@ -1,0 +1,66 @@
+{
+  "title": "Lunge & recovery / sample practice",
+  "skill_level": "beginner",
+  "notes": "Synthetic sample measurements for exploring the app. No footage was analyzed. Values are illustrative, not validated athletic performance.",
+  "metrics": [
+    {
+      "metric_id": "rep-01-recovery",
+      "name": "recovery_time",
+      "value": 1040,
+      "unit": "ms",
+      "confidence": 0.9,
+      "baseline_value": 1100,
+      "start_ms": 1000,
+      "end_ms": 2040
+    },
+    {
+      "metric_id": "rep-02-recovery",
+      "name": "recovery_time",
+      "value": 990,
+      "unit": "ms",
+      "confidence": 0.88,
+      "baseline_value": 1100,
+      "start_ms": 3500,
+      "end_ms": 4490
+    },
+    {
+      "metric_id": "rep-03-recovery",
+      "name": "recovery_time",
+      "value": 970,
+      "unit": "ms",
+      "confidence": 0.91,
+      "baseline_value": 1100,
+      "start_ms": 6000,
+      "end_ms": 6970
+    },
+    {
+      "metric_id": "rep-04-recovery",
+      "name": "recovery_time",
+      "value": 920,
+      "unit": "ms",
+      "confidence": 0.89,
+      "baseline_value": 1100,
+      "start_ms": 8500,
+      "end_ms": 9420
+    },
+    {
+      "metric_id": "rep-05-recovery",
+      "name": "recovery_time",
+      "value": 940,
+      "unit": "ms",
+      "confidence": 0.58,
+      "baseline_value": 1100,
+      "start_ms": 11000,
+      "end_ms": 11940
+    },
+    {
+      "metric_id": "rep-01-stance",
+      "name": "stance_width",
+      "value": 0.37,
+      "unit": "frame width",
+      "confidence": 0.84,
+      "start_ms": 0,
+      "end_ms": 500
+    }
+  ]
+}

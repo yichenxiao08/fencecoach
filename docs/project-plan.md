@@ -63,3 +63,9 @@ Use LangChain for model integrations, tools, embeddings, and retrievers. Use Lan
 - A/B result for RAG on/off and evidence validator on/off.
 
 Write résumé bullets only after measuring these values.
+
+## Build status (October 3, 2026)
+
+The first interactive build now includes a responsive browser dashboard, session measurement imports, local SQLite history, a no-account demo, the live Bedrock adapter, BM25 or optional embedding retrieval, bounded agent tooling, structured reports, citation ID validation, trace/usage metadata, exports, a retrieval baseline script, Docker packaging and GitHub Actions checks. Video measurement extraction remains the next major product milestone.
+
+The backend API is separate from the browser client. A hosted, installable web app can reuse this interface; a native mobile client can call the same session and report endpoints. Authentication, session ownership, private media storage and queued video analysis are required before multi-user deployment.

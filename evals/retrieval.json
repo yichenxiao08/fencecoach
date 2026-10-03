@@ -1,0 +1,42 @@
+[
+  {
+    "query": "How should I compare my recovery time against a baseline?",
+    "expected_sources": ["recovery_measurements.md"]
+  },
+  {
+    "query": "Does a shorter recovery interval prove better balance?",
+    "expected_sources": ["recovery_measurements.md"]
+  },
+  {
+    "query": "What does negative recovery-time delta mean?",
+    "expected_sources": ["recovery_measurements.md"]
+  },
+  {
+    "query": "What can I conclude from low pose confidence?",
+    "expected_sources": ["capture_quality.md"]
+  },
+  {
+    "query": "Why do masks and motion blur affect landmark estimation?",
+    "expected_sources": ["capture_quality.md"]
+  },
+  {
+    "query": "How should I place the camera before re-recording?",
+    "expected_sources": ["capture_quality.md"]
+  },
+  {
+    "query": "Can I convert uncalibrated frame width into centimeters?",
+    "expected_sources": ["footwork_rhythm.md"]
+  },
+  {
+    "query": "Suggest an advance and retreat footwork rhythm drill",
+    "expected_sources": ["footwork_rhythm.md"]
+  },
+  {
+    "query": "Suggest five slow lunges with deliberate recovery to en garde",
+    "expected_sources": ["foil_movement_notes.md"]
+  },
+  {
+    "query": "Should I silently remove low-confidence repetitions from the mean?",
+    "expected_sources": ["recovery_measurements.md"]
+  }
+]

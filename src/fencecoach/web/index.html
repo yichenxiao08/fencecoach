@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FenceCoach · Practice with purpose</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a href="/" class="brand"
+          ><span class="brand-mark">↗</span> FenceCoach<span class="brand-dot"
+            >.</span
+          ></a
+        >
+        <div class="sidebar-label">YOUR WORKSPACE</div>
+        <button class="nav-button active" id="dashboard-nav">
+          <span>◈</span> Practice review
+        </button>
+        <a class="nav-button" href="/docs" target="_blank" rel="noopener"
+          ><span>⌘</span> Developer API <span class="external">↗</span></a
+        >
+        <div class="sessions-heading">
+          <span class="sidebar-label">RECENT SESSIONS</span
+          ><button id="new-session" aria-label="Import a new session">+</button>
+        </div>
+        <div id="session-list" class="session-list">
+          <p class="sidebar-muted">Your sessions will appear here.</p>
+        </div>
+        <div class="sidebar-bottom">
+          <span class="avatar">YX</span>
+          <div>
+            <strong>Local workspace</strong><small>Foil · Practice lab</small>
+          </div>
+          <span class="status-dot"></span>
+        </div>
+      </aside>
+      <main>
+        <header class="topbar">
+          <div>Workspace <span>/</span> Practice review</div>
+          <span class="local-badge"><i></i> Local storage</span>
+        </header>
+        <div class="content">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">THE PRACTICE LAB</p>
+              <h1>Every rep, a little sharper.</h1>
+              <p class="intro">
+                Turn your session measurements into a focused next step.
+              </p>
+            </div>
+            <button class="button secondary" id="import-button">
+              ↑ Import session
+            </button>
+          </div>
+          <div id="notice" role="status" class="notice hidden"></div>
+          <section id="empty-state" class="empty-state">
+            <div class="empty-art" aria-hidden="true">
+              <svg viewBox="0 0 380 160">
+                <path d="M20 130H360" />
+                <path
+                  d="M90 126L140 103 185 128M140 103L170 70 223 80 310 64M168 72L133 58 96 80"
+                />
+                <circle cx="182" cy="43" r="16" />
+                <path class="accent-line" d="M235 80L352 58" />
+                <path d="M25 140H360" opacity=".3" />
+              </svg>
+            </div>
+            <p class="eyebrow">YOUR FIRST REVIEW STARTS HERE</p>
+            <h2>Bring your practice into focus.</h2>
+            <p>
+              Try a sample session, or import measured data as JSON.<br />Explore
+              cited feedback and see exactly what informed it.
+            </p>
+            <button class="button primary" id="load-demo">
+              Explore sample session <span>↗</span></button
+            ><small
+              >Sample data is synthetic. Demo reports use no paid AI
+              calls.</small
+            >
+          </section>
+          <div id="workspace" class="hidden">
+            <div class="session-bar">
+              <div>
+                <span class="tag" id="session-kind">SESSION</span>
+                <h2 id="session-title"></h2>
+                <p id="session-meta"></p>
+                <p id="session-notes" class="session-notes"></p>
+              </div>
+              <div class="session-controls">
+                <select
+                  id="session-picker"
+                  aria-label="Practice session"
+                ></select
+                ><button class="text-button" id="download-session">
+                  Export data ↓
+                </button>
+              </div>
+            </div>
+            <div id="sample-banner" class="sample-banner hidden">
+              SAMPLE SESSION
+              <span
+                >Synthetic measurements for exploring FenceCoach. No video has
+                been analyzed.</span
+              >
+            </div>
+            <div class="stats-grid" id="stats"></div>
+            <div class="review-grid">
+              <section class="panel measurements-panel">
+                <div class="panel-heading">
+                  <div>
+                    <p class="eyebrow">SESSION EVIDENCE</p>
+                    <h3>Your measurements</h3>
+                  </div>
+                  <span id="metric-count" class="count"></span>
+                </div>
+                <div id="chart"></div>
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Measurement</th>
+                        <th>Value</th>
+                        <th>Confidence</th>
+                      </tr>
+                    </thead>
+                    <tbody id="metric-table"></tbody>
+                  </table>
+                </div>
+                <p class="panel-footnote">
+                  Confidence is supplied with your data. Compare recordings from
+                  the same camera setup.
+                </p>
+              </section>
+              <section class="panel coach-panel">
+                <div class="panel-heading">
+                  <div>
+                    <p class="eyebrow">YOUR NEXT STEP</p>
+                    <h3>Ask your coach</h3>
+                  </div>
+                  <span class="spark">✦</span>
+                </div>
+                <p class="muted">
+                  Ask about a measurement, a baseline change, or a practice
+                  focus.
+                </p>
+                <form id="coach-form">
+                  <label for="question">What would you like to review?</label
+                  ><textarea
+                    id="question"
+                    rows="3"
+                    maxlength="1500"
+                    minlength="3"
+                    required
+                  >
+What should I focus on in my lunge recovery?</textarea>
+                  <div class="suggestions">
+                    <button
+                      type="button"
+                      data-question="How did my recovery times change from the baseline?"
+                    >
+                      Compare to baseline</button
+                    ><button
+                      type="button"
+                      data-question="Which measurements have low confidence, and what can I conclude?"
+                    >
+                      Check confidence
+                    </button>
+                  </div>
+                  <div class="coach-actions">
+                    <div>
+                      <label class="sr-only" for="mode">Report mode</label
+                      ><select id="mode">
+                        <option value="demo">Demo · no LLM calls</option>
+                        <option value="bedrock">Live AI · AWS Bedrock</option>
+                      </select>
+                    </div>
+                    <button
+                      type="submit"
+                      class="button primary"
+                      id="generate-button"
+                    >
+                      Review session ↗
+                    </button>
+                  </div>
+                  <p class="mode-note" id="mode-note">
+                    Demo summarizes supplied values; live AI answers your
+                    question using tools and retrieved notes.
+                  </p>
+                </form>
+                <div class="workflow-mini">
+                  <span>Measurements</span><b>→</b><span>Coaching notes</span
+                  ><b>→</b><span>Cited report</span>
+                </div>
+              </section>
+            </div>
+            <section
+              id="report-section"
+              class="panel report-panel hidden"
+              aria-live="polite"
+            >
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">COACHING REPORT</p>
+                  <h3 id="report-heading">A focus for your next session</h3>
+                </div>
+                <button class="text-button" id="download-report">
+                  Export report ↓
+                </button>
+              </div>
+              <div class="report-toolbar">
+                <select id="report-history" aria-label="Saved reports"></select
+                ><span id="report-badge" class="tag"></span>
+              </div>
+              <p id="report-question" class="report-question"></p>
+              <p id="report-summary" class="report-summary"></p>
+              <div class="report-columns">
+                <div>
+                  <div id="observations"></div>
+                  <div id="drill"></div>
+                </div>
+                <aside class="evidence-panel">
+                  <p class="eyebrow">BEHIND THE ANSWER</p>
+                  <h4>Evidence & run details</h4>
+                  <div id="run-stats"></div>
+                  <details open>
+                    <summary>Sources retrieved</summary>
+                    <div id="sources"></div>
+                  </details>
+                  <details>
+                    <summary>Workflow activity</summary>
+                    <ol id="trace"></ol>
+                  </details>
+                  <details>
+                    <summary>Limitations</summary>
+                    <ul id="limitations"></ul>
+                  </details>
+                </aside>
+              </div>
+            </section>
+            <p class="workspace-footnote">
+              A tool for deliberate practice. Review technique decisions with a
+              qualified coach.
+            </p>
+          </div>
+        </div>
+      </main>
+    </div>
+    <dialog id="import-dialog">
+      <form id="import-form">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">NEW SESSION</p>
+            <h2>Import your measurements</h2>
+          </div>
+          <button
+            type="button"
+            class="close-button"
+            id="close-import"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+        <p class="muted">
+          Upload a session JSON file or paste one below. Measurements must
+          include source IDs, units and confidence.
+        </p>
+        <label for="json-file" class="file-label"
+          >Choose JSON file
+          <input
+            type="file"
+            id="json-file"
+            accept=".json,application/json" /></label
+        ><label for="session-json">Session JSON</label
+        ><textarea
+          id="session-json"
+          rows="11"
+          required
+          spellcheck="false"
+        ></textarea>
+        <p id="import-error" class="error-text" role="alert"></p>
+        <div class="dialog-actions">
+          <a
+            href="/static/sample-session.json"
+            download="sample-session.json"
+            class="text-button"
+            >Download example ↓</a
+          ><button class="button primary" type="submit" id="save-session">
+            Save session ↗
+          </button>
+        </div>
+      </form>
+    </dialog>
+  </body>
+</html>
