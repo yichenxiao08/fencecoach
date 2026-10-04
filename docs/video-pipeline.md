@@ -34,13 +34,13 @@ One supervisor runs one child at a time, outside the HTTP request. SQLite retain
 
 Bounds: 200 MiB, 120 seconds, at most 4K resolution; five outstanding jobs; ten-minute worker timeout and decoded-frame cap. Multipart bytes are bounded as they arrive, including chunked requests. Storage uses generated IDs rather than user filenames; no arbitrary remote URL endpoint exists.
 
-Each `data/videos/{job_id}/` contains `source.video`, `preview.mp4` and `result.json`. Previews are upright, resized to at most 960 pixels on the longer side, sampled and silent. Pose extraction uses source pixels inside an optional crop, mapped back into full-frame coordinates. Crop percentages describe the upright frame and must contain one athlete's entire movement.
+Each `data/videos/{job_id}/` contains `source.video`, `preview.mp4`, `poster.jpg` and `result.json`. Previews are upright, resized to at most 960 pixels on the longer side and silent. Playback preserves source timestamps and cadence up to 30 fps independently of the 12 fps pose analysis. Low-rate source footage stays low-rate; no video frames are invented. MP4 indexing is at the start of the file, with no B frames, keyframes about once a second and a first-frame poster. Published files are replaced only after encoding finishes, and revision URLs avoid stale previews. Pose extraction uses an optional crop, resized to at most 960 pixels on its longer side before inference and mapped back into full-frame coordinates. New results include preview metadata, preprocessing dimensions and actual processing durations. Crop percentages describe the upright frame and must contain one athlete's entire movement.
 
 Original uploads and landmarks remain on the local server, without automatic deletion. Keep this unauthenticated app on localhost. Cloud use needs authentication, ownership checks, retention controls and private storage. Extraction makes no LLM calls and does not send footage to Bedrock. Live coaching sends derived metrics and notes through the configured provider.
 
 ## Evidence semantics
 
-- Decoded PTS/time-base values define timestamps. Missing/backward timestamps fail the job. Rotation is normalized. Sampling targets approximately 12 fps; actual timestamps are retained.
+- Decoded PTS/time-base values define timestamps. Missing/backward timestamps fail the job. Rotation is normalized. Pose sampling targets approximately 12 fps; actual timestamps are retained. Playback sampling is independent.
 - Frames with multiple poses or large sudden hip-position jumps are excluded. This cannot guarantee identity continuity through occlusion; use solo footage or a crop.
 - `stance_ratio` is horizontal ankle separation divided by mean shoulder-to-hip length in image pixels. Knee angles are 2D debug features. No physical-distance, contact, balance or technique score is produced.
 - `stance-return-v1` assumes the first 1.5 seconds contain en garde. Expansion must exceed both 1.3 × median initial stance and that median + 0.3. Return means being within median + 0.2 for at least 333 ms. Proposed peak-to-return intervals range from 250 ms to six seconds. These are engineering thresholds, not validated fencing standards.
@@ -59,3 +59,12 @@ After correcting sampling cadence, the MIT clip produced 91 sampled frames, 89 u
 Next: build a small attributed/labeled set with explicit peak and recovery definitions; measure event precision/recall, timing MAE, usable-frame rate and processing latency. Extend camera angles/actions and move to a cloud queue after measuring those limitations.
 
 References: [MediaPipe Python](https://developers.google.com/edge/mediapipe/solutions/vision/pose_landmarker/python), [model overview](https://developers.google.com/edge/mediapipe/solutions/vision/pose_landmarker), [PyAV timing](https://pyav.org/docs/stable/api/time.html), [FastAPI uploads](https://fastapi.tiangolo.com/tutorial/request-files/).
+
+
+## Playback improvements
+
+The overlay uses the displayed frame's media timestamp through `requestVideoFrameCallback` where supported. It no longer repaints at display refresh rate while paused. Older browsers animate only during playback. Canvas resolution is bounded to the preview dimensions. Linear display interpolation is limited to adjacent valid poses within 200 ms and without a large hip-position discontinuity; it never changes stored landmarks, features or timings, nor fills missing or ambiguous pose samples.
+
+To upgrade an existing analysis's playback assets without recomputing its evidence, run `python -m fencecoach.video_preview --job YOUR_JOB_ID` from the repository directory against a review-ready or completed job, then reload the browser. Source cadence limitations still apply.
+
+Implementation references: [video frame callbacks](https://developer.mozilla.org/en-US/docs/Web/API/HTMLVideoElement/requestVideoFrameCallback) and [FFmpeg encoder options](https://ffmpeg.org/ffmpeg-codecs.html#libx264_002c-libx264rgb).

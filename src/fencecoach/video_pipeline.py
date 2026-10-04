@@ -5,11 +5,12 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-from fractions import Fraction
+import time
 from pathlib import Path
 from statistics import median
 
 from fencecoach.video_jobs import MAX_SECONDS, METHOD, MODEL_SHA
+from fencecoach.video_preview import build_preview, upright_frame
 
 SAMPLE_INTERVAL_MS = 1000 / 12
 KEYPOINTS = (23, 24, 25, 26, 27, 28)
@@ -96,16 +97,22 @@ def analyze(jobs, job_id: str, model: Path):
     if sha != MODEL_SHA:
         raise ValueError("Pose model checksum differs from the pinned model. Run setup_video.py.")
     job = jobs.get(job_id)
+    started = time.perf_counter()
     directory = jobs.directory / job_id
     crop = job["crop"]
     frames, ambiguous, missing, jumps = [], 0, 0, 0
     start_time = None
-    last_time = -1000
     previous_timestamp = -1
     next_sample = 0
     previous_center = None
     previous_pose_time = None
-    preview = directory / "preview.mp4"
+    jobs.update(job_id, stage="Preparing smooth video playback", progress=5)
+    preview = build_preview(
+        directory / "source.video",
+        directory,
+        lambda fraction: jobs.update(job_id, progress=5 + round(25 * fraction)),
+    )
+    inference_ms = 0
     options = PoseLandmarkerOptions(
         base_options=BaseOptions(model_asset_path=str(model)),
         running_mode=RunningMode.VIDEO,
@@ -114,7 +121,7 @@ def analyze(jobs, job_id: str, model: Path):
         min_pose_presence_confidence=0.6,
         min_tracking_confidence=0.6,
     )
-    jobs.update(job_id, stage="Tracking body landmarks", progress=5)
+    jobs.update(job_id, stage="Tracking body landmarks", progress=30)
     with av.open(str(directory / "source.video")) as container:
         if not container.streams.video:
             raise ValueError("The uploaded file has no video stream.")
@@ -124,11 +131,7 @@ def analyze(jobs, job_id: str, model: Path):
         if container.duration and container.duration / av.time_base > MAX_SECONDS + 1:
             raise ValueError(f"Use a clip of {MAX_SECONDS} seconds or less.")
         duration_hint = container.duration / av.time_base if container.duration else MAX_SECONDS
-        with (
-            PoseLandmarker.create_from_options(options) as landmarker,
-            av.open(str(preview), "w", options={"movflags": "+faststart"}) as output,
-        ):
-            encoded = None
+        with PoseLandmarker.create_from_options(options) as landmarker:
             for count, frame in enumerate(container.decode(stream)):
                 if frame.width * frame.height > 3840 * 2160:
                     raise ValueError("Use footage at 4K resolution or below.")
@@ -151,33 +154,23 @@ def analyze(jobs, job_id: str, model: Path):
                     continue
                 while next_sample <= t + 0.5:
                     next_sample += SAMPLE_INTERVAL_MS
-                last_time = t
-                rgb = frame.to_ndarray(format="rgb24")
-                rotation = round(frame.rotation)
-                if rotation % 90:
-                    raise ValueError("Unsupported video rotation. Export an upright MP4.")
-                if rotation:
-                    rgb = np.rot90(rgb, k=rotation // 90).copy()
+                rgb = upright_frame(frame).to_ndarray(format="rgb24")
                 h, w = rgb.shape[:2]
-                factor = min(1, 960 / max(w, h))
-                pw, ph = max(2, int(w * factor) // 2 * 2), max(2, int(h * factor) // 2 * 2)
-                if encoded is None:
-                    encoded = output.add_stream("libx264", rate=12)
-                    encoded.width, encoded.height = pw, ph
-                    encoded.pix_fmt = "yuv420p"
-                    encoded.time_base = Fraction(1, 1000)
-                    encoded.codec_context.time_base = Fraction(1, 1000)
-                    encoded.options = {"crf": "23", "preset": "veryfast"}
-                preview_frame = av.VideoFrame.from_ndarray(rgb, format="rgb24").reformat(pw, ph)
-                preview_frame.pts, preview_frame.time_base = t, Fraction(1, 1000)
-                for packet in encoded.encode(preview_frame):
-                    output.mux(packet)
                 x, y = int(crop["x"] * w), int(crop["y"] * h)
                 cw, ch = int(crop["width"] * w), int(crop["height"] * h)
                 roi = np.ascontiguousarray(rgb[y : y + ch, x : x + cw])
+                if max(cw, ch) > 960:
+                    scale = 960 / max(cw, ch)
+                    roi = (
+                        av.VideoFrame.from_ndarray(roi, format="rgb24")
+                        .reformat(max(1, round(cw * scale)), max(1, round(ch * scale)))
+                        .to_ndarray(format="rgb24")
+                    )
+                inference_started = time.perf_counter()
                 result = landmarker.detect_for_video(
                     mp.Image(image_format=mp.ImageFormat.SRGB, data=roi), t
                 )
+                inference_ms += (time.perf_counter() - inference_started) * 1000
                 item = dict(time_ms=t, landmarks=[], quality=0, features=None)
                 if len(result.pose_landmarks) > 1:
                     ambiguous += 1
@@ -230,14 +223,10 @@ def analyze(jobs, job_id: str, model: Path):
                 if len(frames) % 12 == 0:
                     jobs.update(
                         job_id,
-                        progress=min(94, round(5 + 89 * t / (duration_hint * 1000))),
+                        progress=min(94, round(30 + 64 * t / (duration_hint * 1000))),
                         stage="Tracking body landmarks",
                         sampled_frames=len(frames),
                     )
-            if encoded is None:
-                raise ValueError("The file contained no decodable video frames.")
-            for packet in encoded.encode():
-                output.mux(packet)
     if len(frames) < 6:
         raise ValueError("Use at least one second of decodable video.")
     candidates, baseline = proposals(frames)
@@ -258,9 +247,7 @@ def analyze(jobs, job_id: str, model: Path):
         warnings.append(
             "No complete recovery could be proposed reliably. Mark peak and recovery times manually, or try clearer footage."
         )
-    duration = last_time + round(
-        median([b["time_ms"] - a["time_ms"] for a, b in zip(frames, frames[1:])])
-    )
+    duration = preview["duration_ms"]
     payload = dict(
         job_id=job_id,
         method=METHOD,
@@ -269,6 +256,13 @@ def analyze(jobs, job_id: str, model: Path):
         width=w,
         height=h,
         sample_interval_ms=SAMPLE_INTERVAL_MS,
+        preview=preview,
+        pipeline_version="video-v2",
+        pose_input_max_dimension=960,
+        performance=dict(
+            pose_inference_ms=round(inference_ms),
+            total_ms=round((time.perf_counter() - started) * 1000),
+        ),
         frames=frames,
         candidates=candidates,
         baseline_stance_ratio=baseline,
@@ -289,4 +283,6 @@ def analyze(jobs, job_id: str, model: Path):
         sampled_frames=len(frames),
         tracked_frames=payload["tracked_frames"],
         candidate_count=len(candidates),
+        preview_revision=preview["revision"],
+        preview_version=preview["version"],
     )

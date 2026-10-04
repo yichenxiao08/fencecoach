@@ -3,6 +3,12 @@ import { e, icon, heading, primary, secondary } from "./ui.js";
 import { refreshSessions } from "./store.js";
 
 const videoPath = (id) => `/api/videos/${encodeURIComponent(id)}`;
+export const previewURL = (id, result) =>
+  `${videoPath(id)}/preview?v=${encodeURIComponent(result?.preview?.revision || "legacy")}`;
+export const posterURL = (id, result) =>
+  result?.preview
+    ? `${videoPath(id)}/poster?v=${encodeURIComponent(result.preview.revision)}`
+    : "";
 let controls,
   pollTimer,
   jobEpoch = 0;
@@ -14,7 +20,7 @@ export function analysis(state) {
   if (!result)
     return `${heading("MOVEMENT ANALYSIS", "One rep at a time.")}<section class="analysis-status side-card"><p class="eyebrow">${e(job.title)}</p><h2 id="analysis-stage">${e(job.stage)}</h2><progress id="analysis-progress" max="100" value="${job.progress}"></progress><p id="analysis-detail" role="status">${job.status === "failed" ? e(job.error) : `${job.progress}% · You can leave this screen while analysis runs.`}</p>${job.status === "failed" ? secondary("Retry analysis", "data-video-retry") : '<span class="spinner"></span>'}${secondary("Back to practice", 'data-go="record"')}</section>`;
   const finished = job.status === "completed";
-  return `${heading("MOVEMENT REVIEW", "See your return.<br>Make it yours.")}<div class="analysis-topline"><span>${e(job.title)}</span><span>${job.source === "mit_ocw" ? "PUBLIC DEMONSTRATION" : "YOUR FOOTAGE"}</span></div><div class="analysis-layout"><section><div class="analysis-player"><video id="analysis-video" src="${videoPath(job.job_id)}/preview" controls playsinline preload="metadata"></video><canvas id="analysis-overlay" aria-hidden="true"></canvas></div><div class="analysis-tools"><button class="secondary-action" data-video-overlay aria-pressed="${state.videoOverlay}">${icon("target")}Landmarks ${state.videoOverlay ? "on" : "off"}</button><span>${result.tracked_frames} / ${result.sampled_frames} frames usable</span></div><p class="helper">The red overlay comes from this footage. Missing or ambiguous poses stay unmarked.</p>${job.source === "mit_ocw" ? `<p class="video-credit">${e(result.source_credit)}. <a href="https://ocw.mit.edu/courses/pe-740-fencing-spring-2007/pages/video/" target="_blank" rel="noreferrer">Source</a> · <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" target="_blank" rel="noreferrer">CC BY-NC-SA 3.0</a>. Preview is resized, sampled and silent. This demo doesn’t count toward your practice goal.</p>` : '<p class="helper">Uploaded video and analysis are saved on your local FenceCoach server. This step makes no LLM calls.</p>'}<details class="disclosure"><summary>How these timings were proposed ${icon("chevron")}</summary><ul>${result.warnings.map((w) => `<li>${e(w)}</li>`).join("")}</ul><p>We compare ankle separation relative to torso length with the first 1.5 seconds of guard. The interval begins at peak stance and ends when stance returns to the initial band for at least 333 ms. It does not measure weapon contact, balance or technique quality.</p><button class="text-action" data-video-export>Export landmarks & analysis ${icon("arrow")}</button></details></section><aside class="analysis-review side-card"><p class="eyebrow">${finished ? "SAVED REVIEW" : "YOUR EYES COME FIRST"}</p><h2>${finished ? "Ready for the coach." : "Review each recovery."}</h2><p>${finished ? "Your approved timings are attached to the session." : "Watch each interval. Adjust the peak and return, or remove a proposal that doesn’t match the movement."}</p><div id="window-list">${state.videoWindows.map((w, i) => windowRow(w, i, result.duration_ms, finished)).join("") || '<p class="empty-note">No complete recovery was proposed. You can mark an interval yourself.</p>'}</div>${finished ? primary("Open saved session", `data-session="${e(job.session_id)}"`) : `${secondary("Add a manual interval", "data-window-add")}<label class="field"><span>Practice note</span><textarea id="video-notes" maxlength="2000" rows="2" placeholder="One thing you noticed…"></textarea></label><button class="primary-action" data-video-accept ${!state.videoWindows.length ? "disabled" : ""}>Save reviewed practice ${icon("arrow")}</button>`}<p class="subtle-note">A shorter return alone doesn’t establish better technique. Manually edited intervals have no automatic tracking-quality estimate.</p></aside></div>`;
+  return `${heading("MOVEMENT REVIEW", "See your return.<br>Make it yours.")}<div class="analysis-topline"><span>${e(job.title)}</span><span>${job.source === "mit_ocw" ? "PUBLIC DEMONSTRATION" : "YOUR FOOTAGE"}</span></div><div class="analysis-layout"><section><div class="analysis-player" style="aspect-ratio:${result.width}/${result.height}"><video id="analysis-video" src="${previewURL(job.job_id, result)}" poster="${posterURL(job.job_id, result)}" controls playsinline preload="auto"></video><canvas id="analysis-overlay" aria-hidden="true"></canvas></div><div class="analysis-tools"><button class="secondary-action" data-video-overlay aria-pressed="${state.videoOverlay}">${icon("target")}Landmarks ${state.videoOverlay ? "on" : "off"}</button><span>${result.preview ? `${Math.round(result.preview.fps_hint)} fps preview · ` : ""}${result.tracked_frames} / ${result.sampled_frames} pose samples usable</span></div><p class="helper">Landmarks follow the displayed video frame. Display interpolation smooths short valid gaps; measurements use the original samples.</p>${job.source === "mit_ocw" ? `<p class="video-credit">${e(result.source_credit)}. <a href="https://ocw.mit.edu/courses/pe-740-fencing-spring-2007/pages/video/" target="_blank" rel="noreferrer">Source</a> · <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" target="_blank" rel="noreferrer">CC BY-NC-SA 3.0</a>. Preview is resized and silent; source timing is preserved up to 30 fps. This demo doesn’t count toward your practice goal.</p>` : '<p class="helper">Uploaded video and analysis are saved on your local FenceCoach server. This step makes no LLM calls.</p>'}<details class="disclosure"><summary>How these timings were proposed ${icon("chevron")}</summary><ul>${result.warnings.map((w) => `<li>${e(w)}</li>`).join("")}</ul><p>We compare ankle separation relative to torso length with the first 1.5 seconds of guard. The interval begins at peak stance and ends when stance returns to the initial band for at least 333 ms. It does not measure weapon contact, balance or technique quality.</p><button class="text-action" data-video-export>Export landmarks & analysis ${icon("arrow")}</button></details></section><aside class="analysis-review side-card"><p class="eyebrow">${finished ? "SAVED REVIEW" : "YOUR EYES COME FIRST"}</p><h2>${finished ? "Ready for the coach." : "Review each recovery."}</h2><p>${finished ? "Your approved timings are attached to the session." : "Watch each interval. Adjust the peak and return, or remove a proposal that doesn’t match the movement."}</p><div id="window-list">${state.videoWindows.map((w, i) => windowRow(w, i, result.duration_ms, finished)).join("") || '<p class="empty-note">No complete recovery was proposed. You can mark an interval yourself.</p>'}</div>${finished ? primary("Open saved session", `data-session="${e(job.session_id)}"`) : `${secondary("Add a manual interval", "data-window-add")}<label class="field"><span>Practice note</span><textarea id="video-notes" maxlength="2000" rows="2" placeholder="One thing you noticed…"></textarea></label><button class="primary-action" data-video-accept ${!state.videoWindows.length ? "disabled" : ""}>Save reviewed practice ${icon("arrow")}</button>`}<p class="subtle-note">A shorter return alone doesn’t establish better technique. Manually edited intervals have no automatic tracking-quality estimate.</p></aside></div>`;
 }
 function windowRow(window, i, duration, finished) {
   return `<div class="recovery-window" data-window-row="${i}"><div class="window-heading"><strong>RETURN ${String(i + 1).padStart(2, "0")}</strong><button class="text-action" data-window-seek="${i}">Watch ${icon("play")}</button></div><div class="form-row"><label class="field"><span>Peak / seconds</span><input type="number" min="0" max="${duration / 1000}" step="0.001" value="${window.start_ms / 1000}" data-window-field="start_ms" data-window-index="${i}" ${finished ? "disabled" : ""}></label><label class="field"><span>Return / seconds</span><input type="number" min="0" max="${duration / 1000}" step="0.001" value="${window.end_ms / 1000}" data-window-field="end_ms" data-window-index="${i}" ${finished ? "disabled" : ""}></label></div><div class="window-footer"><span id="window-duration-${i}">${((window.end_ms - window.start_ms) / 1000).toFixed(3)} s</span>${finished ? "" : `<button class="text-action" data-window-remove="${i}" aria-label="Remove recovery ${i + 1}">Remove ${icon("close")}</button>`}</div>${finished ? "" : `<div class="window-marks"><button data-window-mark="start_ms" data-window-index="${i}">Use playhead for peak</button><button data-window-mark="end_ms" data-window-index="${i}">Use playhead for return</button></div>`}</div>`;
@@ -102,6 +108,10 @@ export function setupVideoController(options) {
         state.videoOverlay = !state.videoOverlay;
         button.setAttribute("aria-pressed", state.videoOverlay);
         button.innerHTML = `${icon("target")}Landmarks ${state.videoOverlay ? "on" : "off"}`;
+        const video =
+          document.getElementById("analysis-video") ||
+          document.getElementById("replay-video");
+        video?.dispatchEvent(new Event("fencecoach:overlaychange"));
       } else if (button.hasAttribute("data-video-export")) {
         downloadJSON(
           state.videoResult,
@@ -316,65 +326,135 @@ const edges = [
   [28, 30],
   [30, 32],
 ];
+const jointIndices = [...new Set(edges.flat())];
+function displayLandmarks(frames, time) {
+  if (!frames.length) return [];
+  let lo = 0,
+    hi = frames.length - 1;
+  while (lo < hi) {
+    const middle = Math.floor((lo + hi) / 2);
+    if (frames[middle].time_ms < time) lo = middle + 1;
+    else hi = middle;
+  }
+  const next = frames[lo],
+    previous = frames[Math.max(0, lo - 1)];
+  const nearest =
+    Math.abs(next.time_ms - time) < Math.abs(previous.time_ms - time)
+      ? next
+      : previous;
+  if (Math.abs(nearest.time_ms - time) > 120) return [];
+  const gap = next.time_ms - previous.time_ms;
+  if (
+    gap > 0 &&
+    gap <= 200 &&
+    time >= previous.time_ms &&
+    time <= next.time_ms &&
+    previous.landmarks.length === 33 &&
+    next.landmarks.length === 33
+  ) {
+    const center = (f) => [
+      (f.landmarks[23][0] + f.landmarks[24][0]) / 2,
+      (f.landmarks[23][1] + f.landmarks[24][1]) / 2,
+    ];
+    const a = center(previous),
+      b = center(next);
+    if (Math.hypot(a[0] - b[0], a[1] - b[1]) <= 0.15) {
+      const fraction = (time - previous.time_ms) / gap;
+      return previous.landmarks.map((point, i) => {
+        const other = next.landmarks[i];
+        return [
+          point[0] + (other[0] - point[0]) * fraction,
+          point[1] + (other[1] - point[1]) * fraction,
+          0,
+          Math.min(point[3], other[3]),
+          Math.min(point[4], other[4]),
+        ];
+      });
+    }
+  }
+  return nearest.landmarks;
+}
 export function mountPose(video, canvas, result, state) {
   if (!video || !canvas || !result) return () => {};
   const context = canvas.getContext("2d");
-  canvas.width = result.width;
-  canvas.height = result.height;
-  let handle,
+  const scale = Math.min(1, 960 / Math.max(result.width, result.height));
+  canvas.width =
+    result.preview?.width || Math.max(2, Math.round(result.width * scale));
+  canvas.height =
+    result.preview?.height || Math.max(2, Math.round(result.height * scale));
+  const hasFrameCallback =
+    typeof video.requestVideoFrameCallback === "function";
+  let frameHandle = null,
+    animationHandle = null,
     stopped = false;
-  function draw() {
+  function draw(time) {
     context.clearRect(0, 0, canvas.width, canvas.height);
-    if (state.videoOverlay) {
-      const t = video.currentTime * 1000;
-      let lo = 0,
-        hi = result.frames.length - 1;
-      while (lo < hi) {
-        const mid = Math.floor((lo + hi) / 2);
-        if (result.frames[mid].time_ms < t) lo = mid + 1;
-        else hi = mid;
+    if (!state.videoOverlay) return;
+    const landmarks = displayLandmarks(result.frames, time * 1000);
+    if (!landmarks.length) return;
+    context.strokeStyle = "#ff3746";
+    context.fillStyle = "#fff";
+    context.lineWidth = Math.max(1.5, canvas.width / 180);
+    const visible = (i) => landmarks[i][3] > 0.5 && landmarks[i][4] > 0.5;
+    const point = (i) => [
+      landmarks[i][0] * canvas.width,
+      landmarks[i][1] * canvas.height,
+    ];
+    for (const [a, b] of edges)
+      if (visible(a) && visible(b)) {
+        context.beginPath();
+        context.moveTo(...point(a));
+        context.lineTo(...point(b));
+        context.stroke();
       }
-      const choices = [result.frames[lo], result.frames[Math.max(0, lo - 1)]];
-      const frame = choices.sort(
-        (a, b) => Math.abs(a.time_ms - t) - Math.abs(b.time_ms - t),
-      )[0];
-      if (
-        frame &&
-        Math.abs(frame.time_ms - t) <= 120 &&
-        frame.landmarks.length
-      ) {
-        context.strokeStyle = "#ff3746";
-        context.fillStyle = "#fff";
-        context.lineWidth = Math.max(1.5, result.width / 180);
-        const point = (i) => [
-          frame.landmarks[i][0] * canvas.width,
-          frame.landmarks[i][1] * canvas.height,
-        ];
-        for (const [a, b] of edges)
-          if (frame.landmarks[a][3] > 0.5 && frame.landmarks[b][3] > 0.5) {
-            context.beginPath();
-            context.moveTo(...point(a));
-            context.lineTo(...point(b));
-            context.stroke();
-          }
-        for (const i of new Set(edges.flat()))
-          if (frame.landmarks[i][3] > 0.5) {
-            context.beginPath();
-            context.arc(
-              ...point(i),
-              Math.max(2, result.width / 130),
-              0,
-              Math.PI * 2,
-            );
-            context.fill();
-          }
+    for (const i of jointIndices)
+      if (visible(i)) {
+        context.beginPath();
+        context.arc(
+          ...point(i),
+          Math.max(2, canvas.width / 130),
+          0,
+          Math.PI * 2,
+        );
+        context.fill();
       }
-    }
-    if (!stopped) handle = requestAnimationFrame(draw);
   }
-  draw();
+  function scheduleVideoFrame() {
+    if (stopped || frameHandle !== null) return;
+    frameHandle = video.requestVideoFrameCallback((_now, metadata) => {
+      frameHandle = null;
+      if (stopped) return;
+      draw(metadata.mediaTime);
+      scheduleVideoFrame();
+    });
+  }
+  function animateFallback() {
+    animationHandle = null;
+    if (stopped || video.paused || video.ended) return;
+    if (video.readyState >= 2 && !video.seeking) draw(video.currentTime);
+    animationHandle = requestAnimationFrame(animateFallback);
+  }
+  function invalidate() {
+    if (stopped) return;
+    draw(video.currentTime);
+    if (hasFrameCallback) scheduleVideoFrame();
+    else if (!video.paused && !video.ended && animationHandle === null)
+      animateFallback();
+  }
+  const events = [
+    "loadeddata",
+    "seeked",
+    "play",
+    "pause",
+    "ended",
+    "fencecoach:overlaychange",
+  ];
+  for (const event of events) video.addEventListener(event, invalidate);
+  invalidate();
   return () => {
     stopped = true;
-    cancelAnimationFrame(handle);
+    if (frameHandle !== null) video.cancelVideoFrameCallback(frameHandle);
+    if (animationHandle !== null) cancelAnimationFrame(animationHandle);
+    for (const event of events) video.removeEventListener(event, invalidate);
   };
 }

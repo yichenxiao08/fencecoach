@@ -11,7 +11,13 @@ import {
   restoreRunFocus,
 } from "./store.js";
 import { screens } from "./views.js";
-import { setupVideoController, initVideo, mountPose } from "./video.js";
+import {
+  setupVideoController,
+  initVideo,
+  mountPose,
+  previewURL,
+  posterURL,
+} from "./video.js";
 import { metricEvidence, selectedMetrics } from "./components.js";
 import { findDrill } from "./practice-library.js";
 import {
@@ -116,8 +122,11 @@ function mountMedia() {
   ) {
     const video = $("replay-video");
     video.src = state.session.video_job_id
-      ? `/api/videos/${encodeURIComponent(state.session.video_job_id)}/preview`
+      ? previewURL(state.session.video_job_id, state.reviewResult)
       : getClipURL();
+    video.preload = "auto";
+    if (state.session.video_job_id)
+      video.poster = posterURL(state.session.video_job_id, state.reviewResult);
     stopOverlay = mountPose(
       video,
       $("review-overlay"),

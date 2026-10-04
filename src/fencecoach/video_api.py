@@ -134,7 +134,21 @@ def video_router(jobs, settings):
         job = get_job(job_id)
         if job["status"] not in {"review_ready", "completed"}:
             raise HTTPException(409, "Preview is not ready.")
-        return FileResponse(jobs.directory / job_id / "preview.mp4", media_type="video/mp4")
+        return FileResponse(
+            jobs.directory / job_id / "preview.mp4",
+            media_type="video/mp4",
+            headers={"Cache-Control": "private, no-cache"},
+        )
+
+    @router.get("/{job_id}/poster")
+    def poster(job_id: str):
+        job = get_job(job_id)
+        path = jobs.directory / job_id / "poster.jpg"
+        if job["status"] not in {"review_ready", "completed"} or not path.is_file():
+            raise HTTPException(404, "Poster is not ready.")
+        return FileResponse(
+            path, media_type="image/jpeg", headers={"Cache-Control": "private, no-cache"}
+        )
 
     @router.post("/{job_id}/retry", status_code=202)
     def retry(job_id: str):
