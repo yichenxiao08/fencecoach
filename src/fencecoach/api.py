@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from fencecoach.coach.graph import EvidenceValidationError, run_coach
 from fencecoach.coach.providers import provider_status
 from fencecoach.coaching_jobs import CoachingJobs, CoachingWorker
+from fencecoach.dataset_api import dataset_router
 from fencecoach.repository import Repository
 from fencecoach.schemas import (
     CoachingReport,
@@ -56,6 +57,7 @@ app = FastAPI(
 )
 app.add_middleware(UploadLimit)
 app.include_router(video_router(video_jobs, settings))
+app.include_router(dataset_router(settings.fencecoach_video_dir.parent / "training"))
 web = Path(__file__).parent / "web"
 app.mount("/static", StaticFiles(directory=web), name="static")
 
@@ -63,6 +65,11 @@ app.mount("/static", StaticFiles(directory=web), name="static")
 @app.get("/", include_in_schema=False)
 def dashboard():
     return FileResponse(web / "index.html")
+
+
+@app.get("/dataset", include_in_schema=False)
+def dataset_workspace():
+    return FileResponse(web / "dataset.html")
 
 
 @app.get("/health")

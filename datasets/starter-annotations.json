@@ -1,0 +1,974 @@
+{
+  "schema": "fencecoach-draft-labels-v1",
+  "version": "2026-10-04-starter-1",
+  "license": "CC BY-NC-SA 3.0",
+  "review_method": "Assistant inspected original timestamped frame grids at 500 ms; individual advance/retreat/jump-lunge also inspected at approximately 100 ms. No fencing expert or continuous-playback review.",
+  "limitations": [
+    "Every segment is provisional; no accuracy ground truth claimed.",
+    "The MIT cohort is one split group; crops/people/adjacent clips are not independent evaluation data.",
+    "Movement boundary uncertainty is recorded; ambiguous transitions are left unlabeled.",
+    "No verified fleche or counterattack intervals yet."
+  ],
+  "clips": [
+    {
+      "collection": "mit-ocw",
+      "clip_id": "step_forward",
+      "source_sha256": "ed88416b141c87d7cb6d3b9260f92acc63a5a4beb0640a5a6b8563beadd6246d",
+      "annotations": {
+        "revision": 0,
+        "reviewer": "Codex visual draft — no expert review",
+        "reviewer_role": "assistant",
+        "track_description": "Primary athlete in black T-shirt and light shorts, facing screen right.",
+        "weapon": "unknown",
+        "facing": "right",
+        "opponent_visible": false,
+        "crop": {
+          "x": 0.2,
+          "y": 0.05,
+          "width": 0.78,
+          "height": 0.93
+        },
+        "segments": [
+          {
+            "start_ms": 0,
+            "end_ms": 3083,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 250,
+            "note": "Draft from timestamped original frames. Not expert ground truth."
+          },
+          {
+            "start_ms": 3167,
+            "end_ms": 4167,
+            "layer": "footwork",
+            "label": "advance",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 250,
+            "note": "Draft from timestamped original frames. Not expert ground truth."
+          },
+          {
+            "start_ms": 4250,
+            "end_ms": 5500,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 250,
+            "note": "Draft from timestamped original frames. Not expert ground truth."
+          }
+        ]
+      }
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "step_back",
+      "source_sha256": "c7c2c76b65a2a08e1418b5ed9cdfe272c89035df98639dde0f5c49442fd027a1",
+      "annotations": {
+        "revision": 0,
+        "reviewer": "Codex visual draft — no expert review",
+        "reviewer_role": "assistant",
+        "track_description": "Primary athlete in light shirt and shorts, facing screen right.",
+        "weapon": "unknown",
+        "facing": "right",
+        "opponent_visible": false,
+        "crop": {
+          "x": 0.22,
+          "y": 0.05,
+          "width": 0.76,
+          "height": 0.93
+        },
+        "segments": [
+          {
+            "start_ms": 0,
+            "end_ms": 3250,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 250,
+            "note": "Draft from timestamped original frames. Not expert ground truth."
+          },
+          {
+            "start_ms": 3333,
+            "end_ms": 4583,
+            "layer": "footwork",
+            "label": "retreat",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 250,
+            "note": "Draft from timestamped original frames. Not expert ground truth."
+          },
+          {
+            "start_ms": 4667,
+            "end_ms": 6000,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 250,
+            "note": "Draft from timestamped original frames. Not expert ground truth."
+          }
+        ]
+      }
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "jumpe_lunge",
+      "source_sha256": "f656156eda327753e7fd0dfd14c5e885ae0d4cb5dd489982627bcd2358ae27ed",
+      "annotations": {
+        "revision": 0,
+        "reviewer": "Codex visual draft — no expert review",
+        "reviewer_role": "assistant",
+        "track_description": "Primary athlete in yellow T-shirt, facing screen right before the first action.",
+        "weapon": "unknown",
+        "facing": "right",
+        "opponent_visible": false,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "height": 1
+        },
+        "segments": [
+          {
+            "start_ms": 0,
+            "end_ms": 2083,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 250,
+            "note": "Draft from timestamped original frames. Not expert ground truth."
+          },
+          {
+            "start_ms": 2167,
+            "end_ms": 2667,
+            "layer": "footwork",
+            "label": "jump_forward",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 250,
+            "note": "Draft from timestamped original frames. Not expert ground truth."
+          },
+          {
+            "start_ms": 2667,
+            "end_ms": 3667,
+            "layer": "footwork",
+            "label": "lunge",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 250,
+            "note": "Draft from timestamped original frames. Not expert ground truth."
+          },
+          {
+            "start_ms": 3667,
+            "end_ms": 4250,
+            "layer": "footwork",
+            "label": "recovery",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 250,
+            "note": "Draft from timestamped original frames. Not expert ground truth."
+          },
+          {
+            "start_ms": 4333,
+            "end_ms": 6000,
+            "layer": "footwork",
+            "label": "other",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 250,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Reset/turn after recovery; not labeled as retreat."
+          },
+          {
+            "start_ms": 6083,
+            "end_ms": 7500,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 250,
+            "note": "Draft from timestamped original frames. Not expert ground truth."
+          }
+        ]
+      }
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "jump_forward_jump_back",
+      "source_sha256": "949fdbc58e9cf3becbf60a18ff60d222be3cfb475f9eacff1bd640e56866b68b",
+      "annotations": {
+        "revision": 0,
+        "reviewer": "Codex visual draft — no expert review",
+        "reviewer_role": "assistant",
+        "track_description": "Primary athlete in red T-shirt and black trousers, facing screen right.",
+        "weapon": "unknown",
+        "facing": "right",
+        "opponent_visible": false,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "height": 1
+        },
+        "segments": [
+          {
+            "start_ms": 0,
+            "end_ms": 2250,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 250,
+            "note": "Draft from timestamped original frames. Not expert ground truth."
+          },
+          {
+            "start_ms": 2333,
+            "end_ms": 3083,
+            "layer": "footwork",
+            "label": "jump_forward",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 250,
+            "note": "Draft from timestamped original frames. Not expert ground truth."
+          },
+          {
+            "start_ms": 3167,
+            "end_ms": 3667,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 250,
+            "note": "Draft from timestamped original frames. Not expert ground truth."
+          },
+          {
+            "start_ms": 3750,
+            "end_ms": 4667,
+            "layer": "footwork",
+            "label": "jump_back",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 250,
+            "note": "Draft from timestamped original frames. Not expert ground truth."
+          },
+          {
+            "start_ms": 4750,
+            "end_ms": 6000,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 250,
+            "note": "Draft from timestamped original frames. Not expert ground truth."
+          }
+        ]
+      }
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "step_forward_group",
+      "source_sha256": "5366db3a77b08b1add6f4f81abbc38f01e110dee6f408eaa385e6721a65a9a43",
+      "annotations": {
+        "revision": 0,
+        "reviewer": "Codex visual draft — no expert review",
+        "reviewer_role": "assistant",
+        "track_description": "Foreground athlete in red T-shirt, third visible person from the left at clip start.",
+        "weapon": "unknown",
+        "facing": "right",
+        "opponent_visible": false,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "height": 1
+        },
+        "segments": [
+          {
+            "start_ms": 0,
+            "end_ms": 3000,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 3083,
+            "end_ms": 4583,
+            "layer": "footwork",
+            "label": "advance",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 4667,
+            "end_ms": 6000,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          }
+        ]
+      }
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "step_back_group",
+      "source_sha256": "88065d2e6ce8968700a9f98f2c87a16c71beeec4cb245a4a9dc1aa296a8a2b7d",
+      "annotations": {
+        "revision": 0,
+        "reviewer": "Codex visual draft — no expert review",
+        "reviewer_role": "assistant",
+        "track_description": "Foreground athlete in red T-shirt and black trousers, second visible person from the left at clip start.",
+        "weapon": "unknown",
+        "facing": "right",
+        "opponent_visible": false,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "height": 1
+        },
+        "segments": [
+          {
+            "start_ms": 0,
+            "end_ms": 3333,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 3417,
+            "end_ms": 4750,
+            "layer": "footwork",
+            "label": "retreat",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 4833,
+            "end_ms": 6500,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          }
+        ]
+      }
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "advance_lunge_group",
+      "source_sha256": "cf2cfbba3d42fa1932ed9dba468a42f3fe49dd6892f880be90400e7eab77b7c2",
+      "annotations": {
+        "revision": 0,
+        "reviewer": "Codex visual draft — no expert review",
+        "reviewer_role": "assistant",
+        "track_description": "Foreground athlete in red T-shirt and black trousers, leftmost athlete at clip start.",
+        "weapon": "unknown",
+        "facing": "right",
+        "opponent_visible": false,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "height": 1
+        },
+        "segments": [
+          {
+            "start_ms": 0,
+            "end_ms": 2750,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 2833,
+            "end_ms": 3583,
+            "layer": "footwork",
+            "label": "advance",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 3667,
+            "end_ms": 4500,
+            "layer": "footwork",
+            "label": "lunge",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 4583,
+            "end_ms": 5500,
+            "layer": "footwork",
+            "label": "recovery",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 5583,
+            "end_ms": 6000,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          }
+        ]
+      }
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "jump_lunge_group",
+      "source_sha256": "b22179c1437ded3017f6d92ae4a813bf83796fc9b7fdaab94b3bd998686ca03a",
+      "annotations": {
+        "revision": 0,
+        "reviewer": "Codex visual draft — no expert review",
+        "reviewer_role": "assistant",
+        "track_description": "Foreground athlete in red T-shirt and black trousers, second from left at clip start.",
+        "weapon": "unknown",
+        "facing": "right",
+        "opponent_visible": false,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "height": 1
+        },
+        "segments": [
+          {
+            "start_ms": 0,
+            "end_ms": 2417,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 2500,
+            "end_ms": 3083,
+            "layer": "footwork",
+            "label": "jump_forward",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 3167,
+            "end_ms": 3917,
+            "layer": "footwork",
+            "label": "lunge",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 4000,
+            "end_ms": 5000,
+            "layer": "footwork",
+            "label": "recovery",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 5083,
+            "end_ms": 5833,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          }
+        ]
+      }
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "three_steps_forward_group",
+      "source_sha256": "a6cb891d66829b61d82f5513460a7540dfd02a63d9d70ee272d86117d77aff6c",
+      "annotations": {
+        "revision": 0,
+        "reviewer": "Codex visual draft — no expert review",
+        "reviewer_role": "assistant",
+        "track_description": "Foreground athlete in red T-shirt and black trousers, third from left at clip start.",
+        "weapon": "unknown",
+        "facing": "right",
+        "opponent_visible": false,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "height": 1
+        },
+        "segments": [
+          {
+            "start_ms": 0,
+            "end_ms": 3000,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 3083,
+            "end_ms": 6750,
+            "layer": "footwork",
+            "label": "advance",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 6833,
+            "end_ms": 8917,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          }
+        ]
+      }
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "lunge",
+      "source_sha256": "26b99fe08a3c3020f94339be2062cbadddfda133ca1b8fa813e2ece88b49c457",
+      "annotations": {
+        "revision": 0,
+        "reviewer": "Codex visual draft — no expert review",
+        "reviewer_role": "assistant",
+        "track_description": "Attacker in white shirt/light shorts near the center foreground, facing screen right; many other pairs visible.",
+        "weapon": "foil",
+        "facing": "right",
+        "opponent_visible": true,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "height": 1
+        },
+        "segments": [
+          {
+            "start_ms": 0,
+            "end_ms": 4250,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 5000,
+            "end_ms": 6250,
+            "layer": "footwork",
+            "label": "lunge",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 6333,
+            "end_ms": 7167,
+            "layer": "footwork",
+            "label": "recovery",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 7583,
+            "end_ms": 8250,
+            "layer": "footwork",
+            "label": "lunge",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 8333,
+            "end_ms": 9000,
+            "layer": "footwork",
+            "label": "recovery",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          }
+        ]
+      }
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "advance_lunge",
+      "source_sha256": "6da934342a5513556cc92d04bcd04eefcbcf62a6a76666b8662ac4e38d315ff1",
+      "annotations": {
+        "revision": 0,
+        "reviewer": "Codex visual draft — no expert review",
+        "reviewer_role": "assistant",
+        "track_description": "Foreground masked athlete on screen right, white top/dark shorts, facing screen left.",
+        "weapon": "foil",
+        "facing": "left",
+        "opponent_visible": true,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "height": 1
+        },
+        "segments": [
+          {
+            "start_ms": 0,
+            "end_ms": 5417,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 5500,
+            "end_ms": 6417,
+            "layer": "footwork",
+            "label": "advance",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 6500,
+            "end_ms": 7750,
+            "layer": "footwork",
+            "label": "lunge",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 7833,
+            "end_ms": 9000,
+            "layer": "footwork",
+            "label": "recovery",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 9333,
+            "end_ms": 9833,
+            "layer": "footwork",
+            "label": "advance",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 9917,
+            "end_ms": 10833,
+            "layer": "footwork",
+            "label": "lunge",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 10917,
+            "end_ms": 11667,
+            "layer": "footwork",
+            "label": "recovery",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          }
+        ]
+      }
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "parry_4_repost",
+      "source_sha256": "49d7f614d0a75dd25457a2f7ad9694a4747d0a8bb0cfd52ec57d5cd315aaddcf",
+      "annotations": {
+        "revision": 0,
+        "reviewer": "Codex visual draft — no expert review",
+        "reviewer_role": "assistant",
+        "track_description": "Left foreground masked fencer, white top/dark shorts, facing screen right.",
+        "weapon": "foil",
+        "facing": "right",
+        "opponent_visible": true,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "height": 1
+        },
+        "segments": [
+          {
+            "start_ms": 0,
+            "end_ms": 4250,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 4500,
+            "end_ms": 6083,
+            "layer": "footwork",
+            "label": "lunge",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 6167,
+            "end_ms": 7000,
+            "layer": "footwork",
+            "label": "recovery",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 7083,
+            "end_ms": 7750,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 8000,
+            "end_ms": 9333,
+            "layer": "footwork",
+            "label": "lunge",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 9417,
+            "end_ms": 10000,
+            "layer": "footwork",
+            "label": "recovery",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Draft from timestamped original frames. Not expert ground truth. Group footage: athlete identity and crop need additional review."
+          },
+          {
+            "start_ms": 4500,
+            "end_ms": 5167,
+            "layer": "bladework",
+            "label": "thrust",
+            "track_id": "opponent_right",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "low",
+            "boundary_uncertainty_ms": 500,
+            "note": "Low-resolution staged exchange. Course identifies parry 4/riposte; precise blade contact and tactical interpretation require coach review."
+          },
+          {
+            "start_ms": 5167,
+            "end_ms": 6083,
+            "layer": "bladework",
+            "label": "thrust",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "low",
+            "boundary_uncertainty_ms": 500,
+            "note": "Low-resolution staged exchange. Course identifies parry 4/riposte; precise blade contact and tactical interpretation require coach review."
+          },
+          {
+            "start_ms": 4500,
+            "end_ms": 5167,
+            "layer": "tactics",
+            "label": "attack",
+            "track_id": "opponent_right",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "low",
+            "boundary_uncertainty_ms": 500,
+            "note": "Low-resolution staged exchange. Course identifies parry 4/riposte; precise blade contact and tactical interpretation require coach review."
+          },
+          {
+            "start_ms": 5167,
+            "end_ms": 6083,
+            "layer": "tactics",
+            "label": "riposte",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "low",
+            "boundary_uncertainty_ms": 500,
+            "note": "Low-resolution staged exchange. Course identifies parry 4/riposte; precise blade contact and tactical interpretation require coach review."
+          }
+        ]
+      }
+    }
+  ]
+}

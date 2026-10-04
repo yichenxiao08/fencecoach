@@ -31,10 +31,11 @@ Pose extraction uses the pinned pretrained MediaPipe model. A fencing gesture cl
 been trained from the one public demo. The review screen supports human labels for en garde,
 advance, retreat, lunge, recovery and other, with labeled pose exports.
 
-`scripts/train_gestures.py` trains a temporal logistic-regression classifier from labeled one-second
-windows. It requires at least two classes, twenty usable windows per class and three independent
-source videos per class. Duplicate source bytes remain in the same split. Re-encoded copies of one
-recording must not be supplied as independent videos. The trainer exports JSON weights and a model
+`scripts/train_gestures.py` trains a temporal logistic-regression classifier from reviewed pose
+windows (750 ms by default, configurable). It requires at least two classes, twenty usable windows
+per class and three independent source cohorts or events per class. Duplicate source bytes remain
+in the same split. Related clips, crops and re-encoded copies must not be supplied as independent
+groups. The trainer exports JSON weights and a model
 card, including source licenses, per-class results and the held-out video hashes. It does not load
 pickled models. `--promote` requires held-out macro F1 >= 0.75; otherwise the existing active model
 is preserved. This threshold is a development gate, not a claim of general accuracy.

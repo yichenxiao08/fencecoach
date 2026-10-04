@@ -74,6 +74,9 @@ def classify_windows(frames, path: Path):
             and all(math.isfinite(v) and v > 0 for v in model["scale"])
             and len(model["weights"]) == len(model["intercept"])
             and len(model["classes"]) >= 2
+            and model.get("window_ms", 1000) in {500, 750, 1000, 1500}
+            and isinstance(model.get("stride_ms", 500), int)
+            and 100 <= model.get("stride_ms", 500) <= 1500
             and len(model["weights"]) in {1, len(model["classes"])}
             and all(label in LABELS for label in model["classes"])
             and all(
@@ -92,8 +95,9 @@ def classify_windows(frames, path: Path):
         return [], {"ready": False, "reason": "Model has not passed promotion checks."}
     output = []
     duration = frames[-1]["time_ms"] if frames else 0
-    for start in range(0, duration - 999, 500):
-        vector = temporal_features(frames, start, start + 1000)
+    window, stride = model.get("window_ms", 1000), model.get("stride_ms", 500)
+    for start in range(0, duration - window + 1, stride):
+        vector = temporal_features(frames, start, start + window)
         if vector is None:
             continue
         normalized = [(v - m) / s for v, m, s in zip(vector, model["mean"], model["scale"])]
@@ -112,7 +116,7 @@ def classify_windows(frames, path: Path):
         output.append(
             dict(
                 start_ms=start,
-                end_ms=start + 1000,
+                end_ms=start + window,
                 label=model["classes"][winner] if score >= 0.75 else "uncertain",
                 model_score=round(score, 3),
                 source="trained_temporal_classifier",

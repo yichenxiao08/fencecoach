@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FenceCoach · Dataset review</title>
+    <link rel="icon" href="/static/mark.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css" />
+    <link rel="stylesheet" href="/static/dataset.css" />
+    <script type="module" src="/static/dataset.js"></script>
+  </head>
+  <body class="piste">
+    <header class="app-header">
+      <a class="wordmark" href="/"
+        ><img src="/static/mark.svg" alt="" />FENCECOACH<span
+          >DATASET REVIEW</span
+        ></a
+      ><a href="/">Back to training</a>
+    </header>
+    <main class="dataset-main">
+      <span class="eyebrow">GESTURE RECOGNITION / SOURCE MATERIAL</span>
+      <h1>Build the movement library.</h1>
+      <p>
+        Inspect the source, choose the athlete, and review each interval.
+        Provisional labels are drafts and do not enter normal training. Attack
+        and counterattack labels require both fencers and coach review.
+      </p>
+      <p id="dataset-status" role="status">Loading collected footage…</p>
+      <div class="dataset-layout">
+        <aside class="dataset-card">
+          <label for="source-filter">Find footage</label
+          ><input
+            id="source-filter"
+            type="search"
+            placeholder="advance, retreat, lunge…"
+          />
+          <div id="source-list"></div>
+        </aside>
+        <section class="dataset-card" id="dataset-review" hidden>
+          <h2 id="clip-title"></h2>
+          <video
+            id="dataset-video"
+            controls
+            playsinline
+            preload="metadata"
+          ></video>
+          <div class="dataset-controls">
+            <button id="step-back" type="button">−1 frame</button
+            ><button id="step-forward" type="button">+1 frame</button
+            ><select id="playback-speed" aria-label="Playback speed">
+              <option value="1">1×</option>
+              <option value="0.5">0.5×</option>
+              <option value="0.25">0.25×</option></select
+            ><output id="video-time">0.000 s</output>
+          </div>
+          <p id="source-credit"></p>
+          <p id="source-context"></p>
+          <details>
+            <summary>Athlete and review context</summary>
+            <div class="dataset-form-grid">
+              <label
+                >Reviewer<input
+                  id="reviewer"
+                  maxlength="100"
+                  placeholder="Your name"
+              /></label>
+              <label
+                >Reviewer role<select id="reviewer-role">
+                  <option value="athlete">Athlete</option>
+                  <option value="coach">Coach</option>
+                </select></label
+              >
+              <label
+                >Weapon<select id="weapon">
+                  <option value="unknown">Unknown</option>
+                  <option value="foil">Foil</option>
+                  <option value="epee">Épée</option>
+                  <option value="sabre">Sabre</option>
+                </select></label
+              >
+              <label
+                >Facing<select id="facing">
+                  <option value="unknown">Unknown</option>
+                  <option value="left">Screen left</option>
+                  <option value="right">Screen right</option>
+                </select></label
+              >
+              <label class="dataset-wide"
+                >Athlete description<input
+                  id="track-description"
+                  maxlength="500"
+                  placeholder="Which person is being labeled?"
+              /></label>
+              <label class="dataset-wide"
+                ><input type="checkbox" id="opponent-visible" /> Opponent and
+                exchange context are visible</label
+              >
+              <label
+                >Crop x<input
+                  id="crop-x"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="0.99" /></label
+              ><label
+                >Crop y<input
+                  id="crop-y"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="0.99"
+              /></label>
+              <label
+                >Crop width<input
+                  id="crop-width"
+                  type="number"
+                  step="0.01"
+                  min="0.11"
+                  max="1" /></label
+              ><label
+                >Crop height<input
+                  id="crop-height"
+                  type="number"
+                  step="0.01"
+                  min="0.11"
+                  max="1"
+              /></label>
+            </div>
+          </details>
+          <h3>Timestamped labels</h3>
+          <div id="segment-list"></div>
+          <form id="segment-form" class="dataset-form-grid">
+            <label
+              >Start (seconds)<input
+                name="start"
+                type="number"
+                min="0"
+                step="0.001"
+                required
+              /><button type="button" data-mark="start">
+                Use current time
+              </button></label
+            >
+            <label
+              >End (seconds)<input
+                name="end"
+                type="number"
+                min="0"
+                step="0.001"
+                required
+              /><button type="button" data-mark="end">
+                Use current time
+              </button></label
+            >
+            <label
+              >Layer<select name="layer">
+                <option value="footwork">Footwork</option>
+                <option value="bladework">Bladework</option>
+                <option value="tactics">Tactics</option>
+              </select></label
+            >
+            <label>Movement<select name="label"></select></label>
+            <label
+              >Athlete track<input
+                name="track"
+                value="primary"
+                maxlength="60"
+                required
+            /></label>
+            <label>Note<input name="note" maxlength="500" /></label>
+            <button class="dataset-wide" type="submit">
+              Add provisional label
+            </button>
+          </form>
+          <p>
+            Confirm a label only after inspecting its athlete and boundaries.
+            Frame stepping uses timestamp seeks; slow playback is useful for
+            checking fast transitions.
+          </p>
+          <div class="dataset-controls">
+            <button id="save-labels">Save review</button
+            ><button id="export-labels">Export labels</button>
+          </div>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>
