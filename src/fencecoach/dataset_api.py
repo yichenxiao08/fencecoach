@@ -15,6 +15,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field, model_validator
 
+from fencecoach.data_policy import eligible_source
 from fencecoach.video_jobs import Crop
 
 ONTOLOGY = {
@@ -27,6 +28,8 @@ ONTOLOGY = {
         "fleche",
         "jump_forward",
         "jump_back",
+        "bounce",
+        "shuffle",
         "other",
         "unknown",
     ),
@@ -62,6 +65,7 @@ class DatasetAnnotations(BaseModel):
     track_description: str = Field(default="", max_length=500)
     weapon: Literal["unknown", "foil", "epee", "sabre"] = "unknown"
     facing: Literal["unknown", "left", "right"] = "unknown"
+    camera_motion: Literal["unknown", "fixed", "moving"] = "unknown"
     opponent_visible: bool = False
     crop: Crop = Field(default_factory=Crop)
     segments: list[DatasetSegment] = Field(default_factory=list, max_length=1000)
@@ -95,7 +99,7 @@ def dataset_router(root: Path):
     router = APIRouter(prefix="/api/datasets", tags=["training data"])
 
     def folder(collection, clip_id):
-        if collection not in {"mit-ocw", "commons"} or not re.fullmatch(
+        if collection not in {"mit-ocw", "commons", "footwork-clips"} or not re.fullmatch(
             r"[a-z0-9_-]{1,100}", clip_id
         ):
             raise HTTPException(404, "Dataset clip not found.")
@@ -113,16 +117,23 @@ def dataset_router(root: Path):
         )
 
     @router.get("")
-    def inventory():
+    def inventory(include_excluded: bool = False):
         clips, counts = [], Counter()
+        excluded = 0
         for file in sorted(root.glob("*/*/source.json")):
             source = json.loads(file.read_text(encoding="utf-8"))
+            eligible = eligible_source(source)
+            if not eligible:
+                excluded += 1
+                if not include_excluded:
+                    continue
             marked = annotations(file.parent)
             statuses = Counter(s["status"] for s in marked["segments"])
             counts.update(statuses)
             clips.append(
                 {
                     **source,
+                    "training_eligible": eligible,
                     "collection": file.parent.parent.name,
                     "annotation_counts": dict(statuses),
                     "prepared": (file.parent / "prepared/result.json").is_file(),
@@ -132,7 +143,8 @@ def dataset_router(root: Path):
             clips=clips,
             ontology=ONTOLOGY,
             annotation_counts=dict(counts),
-            note="Provisional labels are excluded from normal training. Tactical labels need coach review.",
+            excluded_sources=excluded,
+            note="Only inspected modern sport fencing sources are eligible. Provisional labels remain excluded from training; historical and unreviewed footage are blocked.",
         )
 
     @router.get("/{collection}/{clip_id}/labels")
@@ -171,7 +183,7 @@ def dataset_router(root: Path):
     def source_video(collection: str, clip_id: str):
         path = folder(collection, clip_id)
         record = json.loads((path / "source.json").read_text(encoding="utf-8"))
-        file = path / ("source.mp4" if collection == "mit-ocw" else "source.video")
+        file = path / ("source.mp4" if (path / "source.mp4").exists() else "source.video")
         if not file.is_file():
             raise HTTPException(404, "Source download is unavailable.")
         extension = Path(record["filename"]).suffix

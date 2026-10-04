@@ -1,6 +1,6 @@
 # FenceCoach
 
-Gesture data collection and the local annotation workspace are documented in [docs/gesture-data.md](docs/gesture-data.md).
+Gesture data collection and the local annotation workspace are documented in [docs/gesture-data.md](docs/gesture-data.md). Training sources require checksum-bound approval for modern sport fencing; historical and unreviewed footage are excluded. The lower-body footwork feature extractor is implemented; the gesture classifier still needs human-reviewed labels.
 
 A fencing training app with an evidence-grounded LLM coaching workflow. The interface combines Piste's athletic training screens, Replay Studio's immersive review, and a deliberate practice journal. The primary color is fencing-strip red, with green reserved for completed practice. The API and browser interface are separate so a mobile client can reuse the coaching backend later.
 

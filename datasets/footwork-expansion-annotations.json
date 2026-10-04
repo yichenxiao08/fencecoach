@@ -1,0 +1,177 @@
+{
+  "schema": "fencecoach-draft-labels-v1",
+  "version": "2026-10-04-footwork-expansion-1",
+  "review_method": "Assistant timestamped frame grids; no human ground truth. Group movement intervals describe a sequence, not counts of individual steps.",
+  "limitations": [
+    "All labels provisional.",
+    "Group clips require identity/crop review.",
+    "No verified bounce labels added.",
+    "Derived clips inherit parent cohort split."
+  ],
+  "clips": [
+    {
+      "collection": "mit-ocw",
+      "clip_id": "tiny_steps_forward",
+      "source_sha256": "b9149e0c430ccb6e0c8744fbeba12f9dc03151df831d1331b066db00ddc7eeb0",
+      "annotations": {
+        "revision": 0,
+        "reviewer": "Codex visual draft \u2014 no expert review",
+        "reviewer_role": "assistant",
+        "track_description": "Red-shirted athlete left of centre; adjacent athletes may overlap. Repeated short advances; inspect identity and individual step boundaries before review.",
+        "weapon": "unknown",
+        "facing": "right",
+        "camera_motion": "unknown",
+        "opponent_visible": false,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "height": 1
+        },
+        "segments": [
+          {
+            "start_ms": 3750,
+            "end_ms": 12500,
+            "layer": "footwork",
+            "label": "advance",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "low",
+            "boundary_uncertainty_ms": 500,
+            "note": "Assistant frame-grid proposal. Requires continuous-playback, actor and boundary review; not ground truth."
+          }
+        ]
+      }
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "tiny_steps_back_group",
+      "source_sha256": "60e0805eb6cc2884a7d40f755ac41e6ccfecaee7fa4b589379ce0576bd9daf79",
+      "annotations": {
+        "revision": 0,
+        "reviewer": "Codex visual draft \u2014 no expert review",
+        "reviewer_role": "assistant",
+        "track_description": "Red-shirted athlete left of centre in modern footwork class. Repeated small retreats; static crop not yet isolated, so actor tracking needs review.",
+        "weapon": "unknown",
+        "facing": "right",
+        "camera_motion": "unknown",
+        "opponent_visible": false,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "height": 1
+        },
+        "segments": [
+          {
+            "start_ms": 3500,
+            "end_ms": 8000,
+            "layer": "footwork",
+            "label": "retreat",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "low",
+            "boundary_uncertainty_ms": 500,
+            "note": "Assistant frame-grid proposal. Requires continuous-playback, actor and boundary review; not ground truth."
+          }
+        ]
+      }
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "two_steps_back_group",
+      "source_sha256": "2f87b14064cb00170fd8c2889f8a7df7c4d6390bf8a6efbd2327543d4d810eea",
+      "annotations": {
+        "revision": 0,
+        "reviewer": "Codex visual draft \u2014 no expert review",
+        "reviewer_role": "assistant",
+        "track_description": "Red-shirted athlete left of centre. Two provisional retreat boundaries; overlapping athletes require crop and identity review.",
+        "weapon": "unknown",
+        "facing": "right",
+        "camera_motion": "unknown",
+        "opponent_visible": false,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "height": 1
+        },
+        "segments": [
+          {
+            "start_ms": 3500,
+            "end_ms": 4250,
+            "layer": "footwork",
+            "label": "retreat",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "low",
+            "boundary_uncertainty_ms": 500,
+            "note": "Assistant frame-grid proposal. Requires continuous-playback, actor and boundary review; not ground truth."
+          },
+          {
+            "start_ms": 4750,
+            "end_ms": 5500,
+            "layer": "footwork",
+            "label": "retreat",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "low",
+            "boundary_uncertainty_ms": 500,
+            "note": "Assistant frame-grid proposal. Requires continuous-playback, actor and boundary review; not ground truth."
+          }
+        ]
+      }
+    },
+    {
+      "collection": "footwork-clips",
+      "clip_id": "evd-esgrima-001-37000-42700",
+      "source_sha256": "6b06904940710ba81a9efbf21c4bb9108351264bbb96b5e47fce003aa00c30a0",
+      "annotations": {
+        "revision": 0,
+        "reviewer": "Codex visual draft \u2014 no expert review",
+        "reviewer_role": "assistant",
+        "track_description": "White-clad masked foil fencer on the left, facing right, black-clad coach on the right. Source offsets 37.0\u201342.7 seconds. Lunge proposal includes initiation through arrival; held endpoint left unlabeled.",
+        "weapon": "foil",
+        "facing": "right",
+        "camera_motion": "unknown",
+        "opponent_visible": true,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "width": 0.69,
+          "height": 1
+        },
+        "segments": [
+          {
+            "start_ms": 0,
+            "end_ms": 1400,
+            "layer": "footwork",
+            "label": "en_garde",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Assistant frame-grid proposal. Requires continuous-playback, actor and boundary review; not ground truth."
+          },
+          {
+            "start_ms": 1400,
+            "end_ms": 3600,
+            "layer": "footwork",
+            "label": "lunge",
+            "track_id": "primary",
+            "status": "provisional",
+            "origin": "assistant_visual",
+            "confidence": "medium",
+            "boundary_uncertainty_ms": 500,
+            "note": "Assistant frame-grid proposal. Requires continuous-playback, actor and boundary review; not ground truth."
+          }
+        ]
+      }
+    }
+  ]
+}

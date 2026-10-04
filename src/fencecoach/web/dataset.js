@@ -1,4 +1,5 @@
 import { api } from "./api-client.js";
+import { footworkPanel } from "./motion.js";
 const $ = (id) => document.getElementById(id);
 const escape = (s) =>
   String(s ?? "").replace(
@@ -29,7 +30,7 @@ function renderSources() {
     )
     .map(
       (c) =>
-        `<button class="dataset-source ${current?.clip_id === c.clip_id ? "active" : ""}" data-collection="${escape(c.collection)}" data-clip="${escape(c.clip_id)}">${escape(pretty(c.clip_id))}<small>${escape(c.collection)} · ${(c.duration_ms / 1000).toFixed(1)} s · ${escape(c.license)}</small><small>${c.annotation_counts.provisional || 0} drafts / ${c.annotation_counts.reviewed || 0} reviewed</small></button>`,
+        `<button class="dataset-source ${current?.clip_id === c.clip_id ? "active" : ""}" data-collection="${escape(c.collection)}" data-clip="${escape(c.clip_id)}">${escape(pretty(c.clip_id))}<small>${c.training_eligible ? "Modern sport fencing" : "EXCLUDED: " + escape(c.training_domain)} · ${escape(c.collection)} · ${(c.duration_ms / 1000).toFixed(1)} s · ${escape(c.license)}</small><small>${c.annotation_counts.provisional || 0} drafts / ${c.annotation_counts.reviewed || 0} reviewed</small></button>`,
     )
     .join("");
 }
@@ -69,7 +70,7 @@ async function openClip(collection, id) {
   $("source-credit").innerHTML =
     `${escape(current.attribution)} · <a href="${escape(current.source_page)}" target="_blank" rel="noreferrer">Source</a> · <a href="${escape(current.license_url)}" target="_blank" rel="noreferrer">${escape(current.license)}</a>`;
   $("source-context").textContent =
-    `${current.description || pretty(current.teaching_topic)}. Split group: ${current.split_group}. ${current.commercial_use ? "" : "Noncommercial development use only."}`;
+    `${current.training_eligible ? "Modern fencing source approved for label review." : "EXCLUDED FROM TRAINING."} ${current.curation_note || "Unreviewed source."} ${current.description || pretty(current.teaching_topic)}. Split group: ${current.split_group}. ${current.commercial_use ? "" : "Noncommercial development use only."}`;
   $("reviewer").value =
     labels.reviewer_role === "assistant"
       ? ""
@@ -81,6 +82,18 @@ async function openClip(collection, id) {
   $("track-description").value = labels.track_description;
   $("weapon").value = labels.weapon;
   $("facing").value = labels.facing;
+  $("camera-motion").value = labels.camera_motion || "unknown";
+  $("footwork-summary").innerHTML = "";
+  if (clip.prepared) {
+    api(`${base()}/poses`)
+      .then((result) => {
+        if (request === selection)
+          $("footwork-summary").innerHTML = footworkPanel(result);
+      })
+      .catch((error) => {
+        if (request === selection) status(error.message);
+      });
+  }
   $("opponent-visible").checked = labels.opponent_visible;
   for (const key of ["x", "y", "width", "height"])
     $(`crop-${key}`).value = labels.crop[key];
@@ -91,9 +104,22 @@ async function openClip(collection, id) {
   delete $("segment-form").dataset.editIndex;
   movementOptions();
   status(
-    `${inventory.clips.length} collected clips. This source has ${labels.segments.length} draft/reviewed intervals.`,
+    `${inventory.clips.length} shown clips; ${inventory.excluded_sources} excluded sources archived. This source has ${labels.segments.length} draft/reviewed intervals.`,
   );
 }
+$("show-excluded").addEventListener("change", async () => {
+  try {
+    inventory = await api(
+      `/api/datasets?include_excluded=${$("show-excluded").checked}`,
+    );
+    renderSources();
+    status(
+      `${inventory.clips.length} shown clips; ${inventory.excluded_sources} excluded sources archived. Historical footage cannot enter training.`,
+    );
+  } catch (error) {
+    status(error.message);
+  }
+});
 $("source-filter").addEventListener("input", renderSources);
 $("source-list").addEventListener("click", (e) => {
   const b = e.target.closest("[data-clip]");
@@ -214,6 +240,7 @@ for (const id of [
   "track-description",
   "weapon",
   "facing",
+  "camera-motion",
   "opponent-visible",
   "crop-x",
   "crop-y",
@@ -237,6 +264,7 @@ function currentAnnotations() {
     track_description: $("track-description").value,
     weapon: $("weapon").value,
     facing: $("facing").value,
+    camera_motion: $("camera-motion").value,
     opponent_visible: $("opponent-visible").checked,
     crop: Object.fromEntries(
       ["x", "y", "width", "height"].map((k) => [
@@ -257,7 +285,9 @@ $("save-labels").addEventListener("click", async () => {
       body: JSON.stringify(currentAnnotations()),
     });
     dirty = false;
-    inventory = await api("/api/datasets");
+    inventory = await api(
+      `/api/datasets?include_excluded=${$("show-excluded").checked}`,
+    );
     renderSources();
     renderSegments();
     status("Saved with provenance and review history.");
@@ -288,10 +318,12 @@ $("export-labels").addEventListener("click", () => {
   URL.revokeObjectURL(url);
 });
 try {
-  inventory = await api("/api/datasets");
+  inventory = await api(
+    `/api/datasets?include_excluded=${$("show-excluded").checked}`,
+  );
   renderSources();
   status(
-    `${inventory.clips.length} source videos collected. ${inventory.annotation_counts.provisional || 0} provisional labels; ${inventory.annotation_counts.reviewed || 0} reviewed.`,
+    `${inventory.clips.length} shown clips; ${inventory.excluded_sources} excluded sources archived. ${inventory.annotation_counts.provisional || 0} provisional labels; ${inventory.annotation_counts.reviewed || 0} reviewed.`,
   );
   if (inventory.clips.length) {
     const first =

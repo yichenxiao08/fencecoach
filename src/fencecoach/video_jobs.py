@@ -69,6 +69,7 @@ class CaptureProfile(BaseModel):
     weapon_arm: Literal["unknown", "left", "right"] = "unknown"
     front_leg: Literal["unknown", "left", "right"] = "unknown"
     facing: Literal["unknown", "left", "right"] = "unknown"
+    camera_motion: Literal["unknown", "fixed", "moving"] = "unknown"
     initial_guard_confirmed: bool = False
 
 

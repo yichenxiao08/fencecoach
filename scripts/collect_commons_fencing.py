@@ -7,6 +7,7 @@ import hashlib
 import html
 import json
 import re
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 from urllib.error import HTTPError
@@ -14,10 +15,23 @@ from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 
 DOURDAN = ("04", "10", "16", "20", "22", "23", "27", "31", "32", "33", "34", "35")
-TITLES = [f"File:Coupe du Monde juniors Dourdan - {n}.webm" for n in DOURDAN]
+TITLES = [f"File:EVD-esgrima-{n:03}.ogv" for n in range(5)]
+TITLES += [f"File:Coupe du Monde juniors Dourdan - {n}.webm" for n in DOURDAN]
 TITLES += ["File:Epeefence.ogv", "File:Foilfence.ogv"]
 TITLES += [f"File:EVD-florete-{n:03}.ogv" for n in range(5)]
-ALLOWED = {"CC0", "CC BY-SA 2.5", "CC BY-SA 2.5 co", "CC BY-SA 3.0"}
+TITLES += [
+    "File:Aspromonte vs. Baldini.ogv",
+    "File:T64 POZDNIAKOVA Sofia - AKSAMIT Monica, 29 May Moscow Sabre 2016.webm",
+]
+ALLOWED = {
+    "CC0",
+    "CC BY-SA 2.5",
+    "CC BY-SA 2.5 co",
+    "CC BY-SA 3.0",
+    "CC BY-SA 4.0",
+    "CC BY 3.0",
+    "CC BY 4.0",
+}
 
 
 def fetch(url):
@@ -85,6 +99,8 @@ def collect(page, root):
         else "amarillo-2007-event"
         if name in {"Epeefence.ogv", "Foilfence.ogv"}
         else "evd-coldeportes-instructional-cohort"
+        if name.startswith("EVD-")
+        else "commons-other-event-unverified"
     )
     record = dict(
         clip_id=clip_id,
@@ -117,6 +133,10 @@ def collect(page, root):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=Path("data/training/commons"))
+    parser.add_argument("--max-new", type=int, default=20)
+    parser.add_argument(
+        "--delay", type=float, default=15, help="Seconds between new media downloads (minimum 5)."
+    )
     parser.add_argument(
         "--inventory-only",
         action="store_true",
@@ -135,13 +155,13 @@ def main():
     )
     with fetch("https://commons.wikimedia.org/w/api.php?" + query) as response:
         metadata = json.load(response)
-    pages = list(metadata["query"]["pages"].values())
+    pages = sorted(metadata["query"]["pages"].values(), key=lambda p: TITLES.index(p["title"]))
     if len(pages) != len(TITLES) or any("imageinfo" not in page for page in pages):
         raise SystemExit("Wikimedia inventory changed; inspect metadata before collection.")
     (args.output / "inventory-metadata.json").write_text(
         json.dumps(metadata, indent=2), encoding="utf-8"
     )
-    records, pending, paused = [], [], False
+    records, pending, paused, downloaded = [], [], False, 0
     for page in pages:
         existing = next(
             (
@@ -152,16 +172,15 @@ def main():
             ),
             None,
         )
-        if args.inventory_only:
-            if existing:
-                records.append(json.loads(existing.read_text(encoding="utf-8")))
-            else:
-                pending.append(
-                    dict(
-                        title=page["title"],
-                        reason="Not downloaded; previous collection paused after HTTP 429.",
-                    )
+        if existing:
+            records.append(json.loads(existing.read_text(encoding="utf-8")))
+            continue
+        if args.inventory_only or downloaded >= args.max_new:
+            pending.append(
+                dict(
+                    title=page["title"], reason="Inventory only or per-run download limit reached."
                 )
+            )
             continue
         if paused:
             pending.append(
@@ -169,7 +188,10 @@ def main():
             )
             continue
         try:
+            if downloaded:
+                time.sleep(max(5, args.delay))
             records.append(collect(page, args.output))
+            downloaded += 1
         except HTTPError as exc:
             pending.append(dict(title=page["title"], http_status=exc.code, reason=str(exc)))
             if exc.code == 429:

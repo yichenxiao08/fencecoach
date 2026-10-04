@@ -19,6 +19,8 @@ from sklearn.metrics import accuracy_score, classification_report, f1_score
 from sklearn.model_selection import GroupShuffleSplit
 from sklearn.preprocessing import StandardScaler
 
+from fencecoach.data_policy import eligible_source
+from fencecoach.footwork import VERSION, enrich_frames
 from fencecoach.gestures import FEATURES, Annotations, temporal_features
 
 
@@ -38,12 +40,24 @@ def main():
             parents[value] = root(parents[value])
         return parents[value]
 
-    skipped_provisional = 0
+    skipped_provisional = skipped_domain = 0
     for annotation in args.data.rglob("annotations.json"):
         directory = annotation.parent
         if not (directory / "result.json").is_file() or not (directory / "source.video").is_file():
             continue
         marked = json.loads(annotation.read_text(encoding="utf-8"))
+        curated_digest = None
+        if marked.get("source_collection"):
+            source_record = directory.parent / "source.json"
+            if not source_record.is_file() or not eligible_source(
+                json.loads(source_record.read_text(encoding="utf-8"))
+            ):
+                skipped_domain += 1
+                continue
+            curated_digest = json.loads(source_record.read_text(encoding="utf-8"))["sha256"]
+        elif not marked.get("domain_verified"):
+            skipped_domain += 1
+            continue
         if (
             marked.get("review_status") == "provisional"
             or marked.get("reviewer_role") == "assistant"
@@ -52,11 +66,15 @@ def main():
             continue
         Annotations.model_validate(marked)
         result = json.loads((directory / "result.json").read_text(encoding="utf-8"))
+        profile = result.get("capture_profile", {})
+        enrich_frames(result["frames"], result["width"], result["height"], profile)
         # Identical uploads must stay in the same split. Hash source bytes, not generated job ID.
         with (directory / "source.video").open("rb") as source_file:
             digest = hashlib.file_digest(source_file, "sha256").hexdigest()
         if marked.get("source_sha256", digest) != digest:
             raise SystemExit(f"Annotation source checksum changed: {annotation}")
+        if curated_digest is not None and curated_digest != digest:
+            raise SystemExit(f"Prepared video differs from the curated source: {annotation}")
         # Dataset recordings/crops from one event or cohort remain together, even
         # when encoded bytes differ. A future athlete-disjoint split can refine this.
         split_group = marked.get("split_group") or digest
@@ -74,6 +92,13 @@ def main():
             }
         )
         for label in marked["labels"]:
+            if label["label"] in {
+                "advance",
+                "retreat",
+                "jump_forward",
+                "jump_back",
+            } and profile.get("facing") not in {"left", "right"}:
+                continue
             for start in range(
                 label["start_ms"], label["end_ms"] - args.window_ms + 1, args.window_ms // 2
             ):
@@ -86,7 +111,7 @@ def main():
     counts = Counter(labels)
     if len(counts) < 2 or min(counts.values(), default=0) < 20:
         raise SystemExit(
-            f"Need at least two gesture classes with 20 reviewed visible windows each. Available: {dict(counts)}; skipped {skipped_provisional} provisional files. Label more footage; no model was promoted."
+            f"Need at least two gesture classes with 20 reviewed visible windows each. Available: {dict(counts)}; skipped {skipped_provisional} provisional and {skipped_domain} excluded/unreviewed-domain files. Label more modern fencing footage; no model was promoted."
         )
     per_class = {
         label: len({group for group, value in zip(groups, labels) if value == label})
@@ -130,7 +155,8 @@ def main():
     version = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     promoted = bool(args.promote and score >= 0.75)
     model = {
-        "schema": "fencecoach-linear-v1",
+        "schema": "fencecoach-linear-v2",
+        "feature_version": VERSION,
         "version": version,
         "promoted": promoted,
         "features": list(FEATURES),

@@ -40,6 +40,10 @@
             type="search"
             placeholder="advance, retreat, lunge…"
           />
+          <label
+            ><input type="checkbox" id="show-excluded" /> Show excluded source
+            archive</label
+          >
           <div id="source-list"></div>
         </aside>
         <section class="dataset-card" id="dataset-review" hidden>
@@ -61,6 +65,7 @@
           </div>
           <p id="source-credit"></p>
           <p id="source-context"></p>
+          <div id="footwork-summary"></div>
           <details>
             <summary>Athlete and review context</summary>
             <div class="dataset-form-grid">
@@ -97,6 +102,13 @@
                   maxlength="500"
                   placeholder="Which person is being labeled?"
               /></label>
+              <label
+                >Camera motion<select id="camera-motion">
+                  <option value="unknown">Not checked</option>
+                  <option value="fixed">Fixed throughout this clip</option>
+                  <option value="moving">Panning, zooming or cuts</option>
+                </select></label
+              >
               <label class="dataset-wide"
                 ><input type="checkbox" id="opponent-visible" /> Opponent and
                 exchange context are visible</label

@@ -7,11 +7,14 @@ This offline corpus does not create athlete sessions or training minutes in the 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import shutil
 from pathlib import Path
 
+from fencecoach.data_policy import eligible_source
 from fencecoach.dataset_api import DatasetAnnotations
+from fencecoach.footwork import enrich_frames, movement_summary
 from fencecoach.gestures import LABELS
 from fencecoach.settings import settings
 from fencecoach.video_pipeline import analyze
@@ -44,7 +47,14 @@ def prepare(folder, refresh=False):
     target = folder / "prepared"
     target.mkdir(exist_ok=True)
     source_path = folder / ("source.mp4" if source["filename"].endswith(".mp4") else "source.video")
-    if not (target / "source.video").exists():
+    with source_path.open("rb") as handle:
+        digest = hashlib.file_digest(handle, "sha256").hexdigest()
+    if digest != source["sha256"]:
+        raise ValueError("Source bytes no longer match the curated checksum.")
+    cached_source = target / "source.video"
+    with cached_source.open("rb") if cached_source.exists() else source_path.open("rb") as handle:
+        cached_digest = hashlib.file_digest(handle, "sha256").hexdigest()
+    if not cached_source.exists() or cached_digest != digest:
         shutil.copyfile(source_path, target / "source.video")
     fingerprint = dict(source_sha256=source["sha256"], crop=annotations.crop.model_dump())
     provenance_file = target / "preparation.json"
@@ -53,10 +63,13 @@ def prepare(folder, refresh=False):
         if provenance_file.exists()
         else None
     )
+    profile = dict(
+        facing=annotations.facing,
+        weapon=annotations.weapon,
+        camera_motion=annotations.camera_motion,
+        initial_guard_confirmed=False,
+    )
     if refresh or not (target / "result.json").exists() or previous != fingerprint:
-        profile = dict(
-            facing=annotations.facing, weapon=annotations.weapon, initial_guard_confirmed=False
-        )
         analyze(
             OfflineJob(folder, fingerprint["crop"], profile),
             "prepared",
@@ -65,6 +78,8 @@ def prepare(folder, refresh=False):
         provenance_file.write_text(json.dumps(fingerprint, indent=2), encoding="utf-8")
     result_path = target / "result.json"
     result = json.loads(result_path.read_text(encoding="utf-8"))
+    enrich_frames(result["frames"], result["width"], result["height"], profile)
+    result.update(capture_profile=profile, footwork_summary=movement_summary(result["frames"]))
     result.update(
         source_credit=source["attribution"],
         license=source["license"],
@@ -75,7 +90,10 @@ def prepare(folder, refresh=False):
     reviewed = [
         s
         for s in annotations.segments
-        if s.status == "reviewed" and s.layer == "footwork" and s.label in LABELS
+        if s.status == "reviewed"
+        and s.layer == "footwork"
+        and s.label in LABELS
+        and eligible_source(source)
     ]
     training = dict(
         reviewer=annotations.reviewer,
@@ -90,6 +108,10 @@ def prepare(folder, refresh=False):
             dict(start_ms=s.start_ms, end_ms=s.end_ms, label=s.label, note=s.note) for s in reviewed
         ],
         annotation_revision=annotations.revision,
+        source_collection=folder.parent.name,
+        training_domain=source.get("training_domain", "unreviewed"),
+        training_eligible=eligible_source(source),
+        curation_sha256=source.get("curation_sha256"),
     )
     (target / "annotations.json").write_text(json.dumps(training, indent=2), encoding="utf-8")
     (target / "draft-labels.json").write_text(json.dumps(marked, indent=2), encoding="utf-8")

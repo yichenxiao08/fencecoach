@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 from statistics import median
 
+from fencecoach.footwork import enrich_frames, movement_summary
 from fencecoach.gestures import classify_windows
 from fencecoach.motion import clip_summary, enrich_candidates, footwork_proposals, frame_features
 from fencecoach.settings import settings
@@ -245,6 +246,7 @@ def analyze(jobs, job_id: str, model: Path):
         warnings.append(
             "No complete recovery could be proposed reliably. Mark peak and recovery times manually, or try clearer footage."
         )
+    enrich_frames(frames, w, h, job.get("capture_profile", {}))
     gestures, gesture_model = classify_windows(frames, settings.fencecoach_gesture_model)
     duration = preview["duration_ms"]
     payload = dict(
@@ -256,7 +258,8 @@ def analyze(jobs, job_id: str, model: Path):
         height=h,
         sample_interval_ms=SAMPLE_INTERVAL_MS,
         preview=preview,
-        pipeline_version="video-v3",
+        pipeline_version="video-v4-footwork",
+        footwork_summary=movement_summary(frames),
         pose_input_max_dimension=960,
         performance=dict(
             pose_inference_ms=round(inference_ms),

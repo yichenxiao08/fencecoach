@@ -1,0 +1,319 @@
+{
+  "schema": "fencecoach-source-curation-v1",
+  "reviewed_on": "2026-10-04",
+  "review_method": "Assistant inspection of timestamped video frame grids and official MIT course provenance; domain review only, not expert gesture ground truth.",
+  "sources": [
+    {
+      "collection": "commons",
+      "clip_id": "dourdan-04",
+      "sha256": "b68b0757bfd5efda935ee4948e403a41f0282801156f6f06c22977be97144609",
+      "domain": "modern_electric_fencing",
+      "eligible": true,
+      "note": "Inspected modern sabre competition on a piste, with masks, protective kit and electric scoring equipment. Walking and resets must not be mislabeled as fencing steps."
+    },
+    {
+      "collection": "commons",
+      "clip_id": "dourdan-10",
+      "sha256": "34aaf69948368c6bd4771534da726622c258ba93b86d20bffca1f8b12ebaebac",
+      "domain": "modern_electric_fencing",
+      "eligible": true,
+      "note": "Inspected modern sabre competition on a piste, with masks, protective kit and electric scoring equipment. Walking and resets must not be mislabeled as fencing steps."
+    },
+    {
+      "collection": "commons",
+      "clip_id": "dourdan-16",
+      "sha256": "b75bbb8d6ca935484c80be6fa527cd0da2698a8aeee41b52cea6c19456d7c2ad",
+      "domain": "modern_electric_fencing",
+      "eligible": true,
+      "note": "Inspected modern sabre competition on a piste, with masks, protective kit and electric scoring equipment. Walking and resets must not be mislabeled as fencing steps."
+    },
+    {
+      "collection": "commons",
+      "clip_id": "dourdan-20",
+      "sha256": "70946eca1f5331c25b1820db6c5605b275697846cb4aff7def8da9525626a3ba",
+      "domain": "modern_electric_fencing",
+      "eligible": true,
+      "note": "Inspected modern sabre competition on a piste, with masks, protective kit and electric scoring equipment. Walking and resets must not be mislabeled as fencing steps."
+    },
+    {
+      "collection": "commons",
+      "clip_id": "dourdan-22",
+      "sha256": "c88d683ee4ccbad2eed8ebca02d4eeb14fbe395e2acdee842172f928d03794ef",
+      "domain": "modern_electric_fencing",
+      "eligible": true,
+      "note": "Inspected modern sabre competition on a piste, with masks, protective kit and electric scoring equipment. Walking and resets must not be mislabeled as fencing steps."
+    },
+    {
+      "collection": "commons",
+      "clip_id": "dourdan-23",
+      "sha256": "bb08aef88fd6737a749bbe76b9638ed8a0cadcb7512fda2dc06b791a747935e8",
+      "domain": "modern_electric_fencing",
+      "eligible": true,
+      "note": "Inspected modern sabre competition on a piste, with masks, protective kit and electric scoring equipment. Walking and resets must not be mislabeled as fencing steps."
+    },
+    {
+      "collection": "commons",
+      "clip_id": "dourdan-27",
+      "sha256": "86d6d2845bb8c59b7bd921828ff42d17307f0db18461aae4f0d6bba4b8c6911e",
+      "domain": "modern_electric_fencing",
+      "eligible": true,
+      "note": "Inspected modern sabre competition on a piste, with masks, protective kit and electric scoring equipment. Walking and resets must not be mislabeled as fencing steps."
+    },
+    {
+      "collection": "commons",
+      "clip_id": "evd-esgrima-000",
+      "sha256": "a0a60ea0f2455ff7f545f6845464c30ef9069636cdc3d237042a98a0cf6dfb74",
+      "domain": "mixed_instructional",
+      "eligible": false,
+      "note": "Mixed instructional recording with titles, weapon closeups or tactical demonstrations. Only separately inspected movement excerpts may be approved."
+    },
+    {
+      "collection": "commons",
+      "clip_id": "evd-esgrima-001",
+      "sha256": "c3574bbe5bf652300f0c7fe48ff9cec8096e7545c5c11f86f15e283548173a90",
+      "domain": "mixed_instructional",
+      "eligible": false,
+      "note": "Mixed instructional recording with titles, weapon closeups or tactical demonstrations. Only separately inspected movement excerpts may be approved."
+    },
+    {
+      "collection": "commons",
+      "clip_id": "evd-esgrima-002",
+      "sha256": "eea3ac3fa0d6eca4c2f03bd385859c590eb0eb76b057489a487d96a799b0eebc",
+      "domain": "mixed_instructional",
+      "eligible": false,
+      "note": "Mixed instructional recording with titles, weapon closeups or tactical demonstrations. Only separately inspected movement excerpts may be approved."
+    },
+    {
+      "collection": "commons",
+      "clip_id": "evd-esgrima-003",
+      "sha256": "9b66624c7c3a0c7989760b9eb0138cd8c024f01c3155d177d0bf8954b4f6ec0b",
+      "domain": "mixed_instructional",
+      "eligible": false,
+      "note": "Mixed instructional recording with titles, weapon closeups or tactical demonstrations. Only separately inspected movement excerpts may be approved."
+    },
+    {
+      "collection": "commons",
+      "clip_id": "evd-esgrima-004",
+      "sha256": "a084948dd8d0c6cefd1856791621b460ea21353064356b4ce6aa541c94052d47",
+      "domain": "excluded_historical",
+      "eligible": false,
+      "note": "Historical narration/stills including ancient depictions. Excluded from all gesture training, including negative examples."
+    },
+    {
+      "collection": "footwork-clips",
+      "clip_id": "evd-esgrima-000-0-120000",
+      "sha256": "58d3e98d6fac487706e9e002e1484a68ae37dd77dba80c5eeb423c61ce84777a",
+      "domain": "mixed_instructional",
+      "eligible": false,
+      "note": "Mixed instructional recording with titles, weapon closeups or tactical demonstrations. Only separately inspected movement excerpts may be approved."
+    },
+    {
+      "collection": "footwork-clips",
+      "clip_id": "evd-esgrima-000-44000-84000",
+      "sha256": "2d8755bbd686c2ddf13c59a713f89bfa16de33ca8868dbede3266e11a14adabf",
+      "domain": "mixed_instructional",
+      "eligible": false,
+      "note": "Mixed instructional recording with titles, weapon closeups or tactical demonstrations. Only separately inspected movement excerpts may be approved."
+    },
+    {
+      "collection": "footwork-clips",
+      "clip_id": "evd-esgrima-001-34000-48000",
+      "sha256": "3e224c4035f1233f701cd3436e9afb3745a3229bae72650339eab93e12531730",
+      "domain": "mixed_instructional",
+      "eligible": false,
+      "note": "Mixed instructional recording with titles, weapon closeups or tactical demonstrations. Only separately inspected movement excerpts may be approved."
+    },
+    {
+      "collection": "footwork-clips",
+      "clip_id": "evd-esgrima-001-37000-42700",
+      "sha256": "6b06904940710ba81a9efbf21c4bb9108351264bbb96b5e47fce003aa00c30a0",
+      "domain": "modern_electric_fencing",
+      "eligible": true,
+      "note": "Inspected continuous side-view modern foil demonstration at original 37.0\u201342.7 seconds. Masked white-clad fencer left, black-clad coach right. Provisional labels only; not an independent source from the parent."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "advance_lunge",
+      "sha256": "6da934342a5513556cc92d04bcd04eefcbcf62a6a76666b8662ac4e38d315ff1",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "advance_lunge_group",
+      "sha256": "cf2cfbba3d42fa1932ed9dba468a42f3fe49dd6892f880be90400e7eab77b7c2",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "group_footwork_with_equipment",
+      "sha256": "a1a8128600ec64849ac389abe6a71a8583ab44be5a2864e30c7655bcc3a88b39",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "group_footwork_with_jarek_2",
+      "sha256": "a7821e46168af4344a5f6395e15b069a129faa2dd75ebe89c157b76a574960bc",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "jump_forward_jump_back",
+      "sha256": "949fdbc58e9cf3becbf60a18ff60d222be3cfb475f9eacff1bd640e56866b68b",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "jump_forward_jump_back_group",
+      "sha256": "2a3e53910cf6005e2a4a09322fd6fa387b3d79036eee8b08859d31e68dadd6a2",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "jump_forward_jump_back_group_2",
+      "sha256": "f0ddbdbb83da958b6b7b8af4c20581097828c75179657989a7e7aa8e7e3f7183",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "jump_lunge",
+      "sha256": "46d2a91f28cb13c591524d183a3ce33f66a291ef60dcca889799cad95acbe880",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "jump_lunge_group",
+      "sha256": "b22179c1437ded3017f6d92ae4a813bf83796fc9b7fdaab94b3bd998686ca03a",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "jumpe_lunge",
+      "sha256": "f656156eda327753e7fd0dfd14c5e885ae0d4cb5dd489982627bcd2358ae27ed",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "lunge",
+      "sha256": "26b99fe08a3c3020f94339be2062cbadddfda133ca1b8fa813e2ece88b49c457",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "parry_4_repost",
+      "sha256": "49d7f614d0a75dd25457a2f7ad9694a4747d0a8bb0cfd52ec57d5cd315aaddcf",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "simple_thrust_with_advance",
+      "sha256": "aaca21da76895b34dddf804d37cc8817d2cf7b50d742dee8607f94f16966d24d",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "simple_thrusts_group",
+      "sha256": "0cf333b1f915a87d8c92c22d9dd3063b24c1c30cb36676597ae23a1a30f59617",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "step_back",
+      "sha256": "c7c2c76b65a2a08e1418b5ed9cdfe272c89035df98639dde0f5c49442fd027a1",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "step_back_group",
+      "sha256": "88065d2e6ce8968700a9f98f2c87a16c71beeec4cb245a4a9dc1aa296a8a2b7d",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "step_forward",
+      "sha256": "ed88416b141c87d7cb6d3b9260f92acc63a5a4beb0640a5a6b8563beadd6246d",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "step_forward_group",
+      "sha256": "5366db3a77b08b1add6f4f81abbc38f01e110dee6f408eaa385e6721a65a9a43",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "step_forward_group_2",
+      "sha256": "950ed7e53dfb62ece0f093bcd73b422fbf109858bc0c1ef841e56cdd7934303c",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "three_steps_forward_group",
+      "sha256": "a6cb891d66829b61d82f5513460a7540dfd02a63d9d70ee272d86117d77aff6c",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "tiny_steps_back_group",
+      "sha256": "60e0805eb6cc2884a7d40f755ac41e6ccfecaee7fa4b589379ce0576bd9daf79",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "tiny_steps_forward",
+      "sha256": "b9149e0c430ccb6e0c8744fbeba12f9dc03151df831d1331b066db00ddc7eeb0",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    },
+    {
+      "collection": "mit-ocw",
+      "clip_id": "two_steps_back_group",
+      "sha256": "2f87b14064cb00170fd8c2889f8a7df7c4d6390bf8a6efbd2327543d4d810eea",
+      "domain": "modern_fencing_footwork_drill",
+      "eligible": true,
+      "note": "Modern MIT sport fencing course. Unarmed footwork drills are relevant; gesture boundaries and actor identity still require human review."
+    }
+  ]
+}
