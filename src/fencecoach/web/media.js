@@ -161,3 +161,13 @@ export function closeCamera() {
   capture.ready = false;
   capture.recording = false;
 }
+
+export async function deleteClip(id) {
+  const database = await db();
+  return new Promise((resolve, reject) => {
+    const tx = database.transaction("clips", "readwrite");
+    tx.objectStore("clips").delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(new Error("Couldn’t clear the saved draft."));
+  });
+}

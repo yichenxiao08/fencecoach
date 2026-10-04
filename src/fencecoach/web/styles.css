@@ -1,2 +1,52 @@
 @import url("./design-system.css");
 @import url("./video.css");
+
+.journal-entry {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  padding: 18px 0;
+}
+.journal-entry small {
+  display: block;
+  color: var(--muted);
+  margin: 6px 0;
+}
+.journal-entry p {
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+.motion-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+.motion-metrics article {
+  border: 1px solid var(--line);
+  padding: 14px;
+  border-radius: 10px;
+}
+.motion-metrics strong {
+  display: block;
+  font-size: 25px;
+  color: var(--accent);
+  margin: 8px 0;
+}
+.motion-metrics small {
+  color: var(--muted);
+}
+.motion-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.annotation-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}

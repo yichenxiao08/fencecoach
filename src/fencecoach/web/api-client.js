@@ -3,6 +3,7 @@ export async function api(path, options = {}) {
     ...options,
     headers: { "Content-Type": "application/json", ...options.headers },
   });
+  if (response.status === 204 && response.ok) return null;
   let data;
   try {
     data = await response.json();

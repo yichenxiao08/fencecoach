@@ -7,9 +7,12 @@ import {
   loadSample,
   importSession,
   generateReport,
+  resumeCoaching,
   savePreferences,
   restoreRunFocus,
 } from "./store.js";
+import { setupMotion } from "./motion.js";
+import { setupJournal } from "./journal.js";
 import { screens } from "./views.js";
 import {
   setupVideoController,
@@ -29,6 +32,7 @@ import {
   closeCamera,
   validateClip,
   saveClip,
+  deleteClip,
   loadClip,
   setClip,
   getClipURL,
@@ -42,12 +46,15 @@ const navigation = [
   ["progress", "chart", "Progress"],
   ["coach", "chat", "Coach"],
 ];
+let draftPersistence = Promise.resolve();
 let toastTimer,
   mediaEpoch = 0,
   draftURL = null,
   cameraEpoch = 0,
   finishPending = false;
 let stopOverlay = () => {};
+const motionController = setupMotion({ state, notice });
+motionController.setup();
 function notice(text = "") {
   state.error = text;
   $("notice").textContent = text;
@@ -104,6 +111,7 @@ function render({ keepScroll = false, focus = false } = {}) {
 function mountMedia() {
   stopOverlay();
   if (state.screen === "analysis") {
+    motionController.mount();
     stopOverlay = mountPose(
       $("analysis-video"),
       $("analysis-overlay"),
@@ -229,6 +237,11 @@ async function sessionMedia(id) {
 function setDraft(blob) {
   if (draftURL) URL.revokeObjectURL(draftURL);
   state.draftClip = blob;
+  draftPersistence = draftPersistence
+    .then(() =>
+      blob ? saveClip("pending-draft", blob) : deleteClip("pending-draft"),
+    )
+    .catch((error) => notice(error.message));
   draftURL = blob ? URL.createObjectURL(blob) : null;
 }
 async function finish() {
@@ -301,7 +314,30 @@ document.addEventListener("click", async (event) => {
         await select(button.dataset.session);
         go("review");
       });
-    else if (button.hasAttribute("data-import")) openImport();
+    else if (button.dataset.savePlan) {
+      button.disabled = true;
+      try {
+        await api(
+          `/api/reports/${encodeURIComponent(button.dataset.savePlan)}/practice-plan`,
+          { method: "POST" },
+        );
+        state.plans = await api("/api/practice-plans");
+        toast("Coaching focus saved to your training library.");
+      } finally {
+        button.disabled = false;
+      }
+    } else if (button.dataset.planPractice) {
+      const plan = state.plans.find(
+        (p) => p.plan_id === button.dataset.planPractice,
+      );
+      state.editingLog = {
+        focus: plan.name,
+        drill_id: plan.plan_id,
+        session_id: plan.session_id,
+        notes: plan.success_criterion,
+      };
+      go("progress");
+    } else if (button.hasAttribute("data-import")) openImport();
     else if (button.hasAttribute("data-save-drill")) {
       const saved = state.preferences.saved,
         index = saved.indexOf(state.drillId);
@@ -538,9 +574,16 @@ async function init() {
   render();
   try {
     await initStore();
+    const savedDraft = await loadClip("pending-draft").catch(() => null);
+    if (savedDraft) setDraft(savedDraft);
     await initVideo();
     if (state.session) await sessionMedia(state.session.session_id);
     render();
+    const resumed = resumeCoaching(() => render({ keepScroll: true }));
+    render({ keepScroll: true });
+    resumed
+      .then(() => render({ keepScroll: true }))
+      .catch((error) => notice(error.message));
   } catch (error) {
     state.loading = false;
     render();
@@ -549,5 +592,6 @@ async function init() {
     );
   }
 }
+setupJournal({ state, render, go, notice, toast });
 setupVideoController({ state, render, go, notice, select, setDraft });
 init();

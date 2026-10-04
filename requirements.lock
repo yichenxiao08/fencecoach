@@ -57,3 +57,15 @@ websockets==16.1.1
 xxhash==4.0.1
 zstandard==0.25.0
 python-multipart==0.0.32
+
+langchain-ollama==1.1.0
+ollama==0.6.3
+psycopg==3.3.6
+psycopg-binary==3.3.6
+scikit-learn==1.9.1
+scipy==1.18.1
+joblib==1.6.0
+threadpoolctl==3.7.0
+cloudpickle==3.1.2
+narwhals==2.26.0
+tzdata==2026.5

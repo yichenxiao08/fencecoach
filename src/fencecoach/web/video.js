@@ -1,3 +1,4 @@
+import { motionPanel, repDetails } from "./motion.js";
 import { api, downloadJSON } from "./api-client.js";
 import { e, icon, heading, primary, secondary } from "./ui.js";
 import { refreshSessions } from "./store.js";
@@ -18,15 +19,20 @@ export function analysis(state) {
   if (!job)
     return `${heading("MOVEMENT ANALYSIS", "Bring your practice.<br>See your return.")}<div class="empty-session"><p>Start with a short side-view clip or MIT’s public fencing demonstration.</p>${primary("Choose a clip", 'data-go="record"')}${secondary("Analyze public demo", "data-video-demo")}</div>`;
   if (!result)
-    return `${heading("MOVEMENT ANALYSIS", "One rep at a time.")}<section class="analysis-status side-card"><p class="eyebrow">${e(job.title)}</p><h2 id="analysis-stage">${e(job.stage)}</h2><progress id="analysis-progress" max="100" value="${job.progress}"></progress><p id="analysis-detail" role="status">${job.status === "failed" ? e(job.error) : `${job.progress}% · You can leave this screen while analysis runs.`}</p>${job.status === "failed" ? secondary("Retry analysis", "data-video-retry") : '<span class="spinner"></span>'}${secondary("Back to practice", 'data-go="record"')}</section>`;
+    return `${heading("MOVEMENT ANALYSIS", "One rep at a time.")}<section class="analysis-status side-card"><p class="eyebrow">${e(job.title)}</p><h2 id="analysis-stage">${e(job.stage)}</h2><progress id="analysis-progress" max="100" value="${job.progress}"></progress><p id="analysis-detail" role="status">${job.status === "failed" ? e(job.error) : `${job.progress}% · You can leave this screen while analysis runs.`}</p>${job.status === "cancelled" ? secondary("Choose another clip", 'data-go="record"') : job.status === "failed" ? secondary("Retry analysis", "data-video-retry") : '<span class="spinner"></span><button class="text-action" data-video-cancel>Cancel analysis</button>'}${secondary("Back to practice", 'data-go="record"')}</section>`;
   const finished = job.status === "completed";
-  return `${heading("MOVEMENT REVIEW", "See your return.<br>Make it yours.")}<div class="analysis-topline"><span>${e(job.title)}</span><span>${job.source === "mit_ocw" ? "PUBLIC DEMONSTRATION" : "YOUR FOOTAGE"}</span></div><div class="analysis-layout"><section><div class="analysis-player" style="aspect-ratio:${result.width}/${result.height}"><video id="analysis-video" src="${previewURL(job.job_id, result)}" poster="${posterURL(job.job_id, result)}" controls playsinline preload="auto"></video><canvas id="analysis-overlay" aria-hidden="true"></canvas></div><div class="analysis-tools"><button class="secondary-action" data-video-overlay aria-pressed="${state.videoOverlay}">${icon("target")}Landmarks ${state.videoOverlay ? "on" : "off"}</button><span>${result.preview ? `${Math.round(result.preview.fps_hint)} fps preview · ` : ""}${result.tracked_frames} / ${result.sampled_frames} pose samples usable</span></div><p class="helper">Landmarks follow the displayed video frame. Display interpolation smooths short valid gaps; measurements use the original samples.</p>${job.source === "mit_ocw" ? `<p class="video-credit">${e(result.source_credit)}. <a href="https://ocw.mit.edu/courses/pe-740-fencing-spring-2007/pages/video/" target="_blank" rel="noreferrer">Source</a> · <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" target="_blank" rel="noreferrer">CC BY-NC-SA 3.0</a>. Preview is resized and silent; source timing is preserved up to 30 fps. This demo doesn’t count toward your practice goal.</p>` : '<p class="helper">Uploaded video and analysis are saved on your local FenceCoach server. This step makes no LLM calls.</p>'}<details class="disclosure"><summary>How these timings were proposed ${icon("chevron")}</summary><ul>${result.warnings.map((w) => `<li>${e(w)}</li>`).join("")}</ul><p>We compare ankle separation relative to torso length with the first 1.5 seconds of guard. The interval begins at peak stance and ends when stance returns to the initial band for at least 333 ms. It does not measure weapon contact, balance or technique quality.</p><button class="text-action" data-video-export>Export landmarks & analysis ${icon("arrow")}</button></details></section><aside class="analysis-review side-card"><p class="eyebrow">${finished ? "SAVED REVIEW" : "YOUR EYES COME FIRST"}</p><h2>${finished ? "Ready for the coach." : "Review each recovery."}</h2><p>${finished ? "Your approved timings are attached to the session." : "Watch each interval. Adjust the peak and return, or remove a proposal that doesn’t match the movement."}</p><div id="window-list">${state.videoWindows.map((w, i) => windowRow(w, i, result.duration_ms, finished)).join("") || '<p class="empty-note">No complete recovery was proposed. You can mark an interval yourself.</p>'}</div>${finished ? primary("Open saved session", `data-session="${e(job.session_id)}"`) : `${secondary("Add a manual interval", "data-window-add")}<label class="field"><span>Practice note</span><textarea id="video-notes" maxlength="2000" rows="2" placeholder="One thing you noticed…"></textarea></label><button class="primary-action" data-video-accept ${!state.videoWindows.length ? "disabled" : ""}>Save reviewed practice ${icon("arrow")}</button>`}<p class="subtle-note">A shorter return alone doesn’t establish better technique. Manually edited intervals have no automatic tracking-quality estimate.</p></aside></div>`;
+  return `${heading("MOVEMENT REVIEW", "See your return.<br>Make it yours.")}<div class="analysis-topline"><span>${e(job.title)}</span><span>${job.source === "mit_ocw" ? "PUBLIC DEMONSTRATION" : "YOUR FOOTAGE"}</span></div><div class="analysis-layout"><section><div class="analysis-player" style="aspect-ratio:${result.width}/${result.height}"><video id="analysis-video" src="${previewURL(job.job_id, result)}" poster="${posterURL(job.job_id, result)}" controls playsinline preload="auto"></video><canvas id="analysis-overlay" aria-hidden="true"></canvas></div><div class="analysis-tools"><button class="secondary-action" data-video-overlay aria-pressed="${state.videoOverlay}">${icon("target")}Landmarks ${state.videoOverlay ? "on" : "off"}</button><span>${result.preview ? `${Math.round(result.preview.fps_hint)} fps preview · ` : ""}${result.tracked_frames} / ${result.sampled_frames} pose samples usable</span></div><p class="helper">Landmarks follow the displayed video frame. Display interpolation smooths short valid gaps; measurements use the original samples.</p>${job.source === "mit_ocw" ? `<p class="video-credit">${e(result.source_credit)}. <a href="https://ocw.mit.edu/courses/pe-740-fencing-spring-2007/pages/video/" target="_blank" rel="noreferrer">Source</a> · <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" target="_blank" rel="noreferrer">CC BY-NC-SA 3.0</a>. Preview is resized and silent; source timing is preserved up to 30 fps. This demo doesn’t count toward your practice goal.</p>` : '<p class="helper">Uploaded video and analysis are saved on your local FenceCoach server. This step makes no LLM calls.</p>'}<details class="disclosure"><summary>How these timings were proposed ${icon("chevron")}</summary><ul>${result.warnings.map((w) => `<li>${e(w)}</li>`).join("")}</ul><p>We compare ankle separation relative to torso length with the first 1.5 seconds of guard. The interval begins at peak stance and ends when stance returns to the initial band for at least 333 ms. It does not measure weapon contact, balance or technique quality.</p><button class="text-action" data-video-export>Export landmarks & analysis ${icon("arrow")}</button></details>${motionPanel(result)}</section><aside class="analysis-review side-card"><p class="eyebrow">${finished ? "SAVED REVIEW" : "YOUR EYES COME FIRST"}</p><h2>${finished ? "Ready for the coach." : "Break down your set."}</h2><p>${finished ? "Your reviewed timings and visible joint measurements are attached to the session." : "Watch each interval. Adjust the peak and return, or remove a proposal that doesn’t match the movement."}</p><div id="window-list">${state.videoWindows.map((w, i) => windowRow(w, i, result.duration_ms, finished, result)).join("") || '<p class="empty-note">No complete recovery was proposed. You can mark an interval yourself.</p>'}</div>${finished ? primary("Open saved session", `data-session="${e(job.session_id)}"`) : `${secondary("Add a manual interval", "data-window-add")}<label class="field"><span>Practice date</span><input type="date" id="video-practiced-on" value="${localDateISO()}" required></label><label class="field"><span>Practice note</span><textarea id="video-notes" maxlength="2000" rows="2" placeholder="One thing you noticed…"></textarea></label><button class="primary-action" data-video-accept ${!state.videoWindows.length && !result.clip_measurements?.length ? "disabled" : ""}>Save reviewed practice ${icon("arrow")}</button>`}<p class="subtle-note">A shorter return alone doesn’t establish better technique. Edited timestamps are human annotations; geometry updates when you save.</p></aside></div>`;
 }
-function windowRow(window, i, duration, finished) {
-  return `<div class="recovery-window" data-window-row="${i}"><div class="window-heading"><strong>RETURN ${String(i + 1).padStart(2, "0")}</strong><button class="text-action" data-window-seek="${i}">Watch ${icon("play")}</button></div><div class="form-row"><label class="field"><span>Peak / seconds</span><input type="number" min="0" max="${duration / 1000}" step="0.001" value="${window.start_ms / 1000}" data-window-field="start_ms" data-window-index="${i}" ${finished ? "disabled" : ""}></label><label class="field"><span>Return / seconds</span><input type="number" min="0" max="${duration / 1000}" step="0.001" value="${window.end_ms / 1000}" data-window-field="end_ms" data-window-index="${i}" ${finished ? "disabled" : ""}></label></div><div class="window-footer"><span id="window-duration-${i}">${((window.end_ms - window.start_ms) / 1000).toFixed(3)} s</span>${finished ? "" : `<button class="text-action" data-window-remove="${i}" aria-label="Remove recovery ${i + 1}">Remove ${icon("close")}</button>`}</div>${finished ? "" : `<div class="window-marks"><button data-window-mark="start_ms" data-window-index="${i}">Use playhead for peak</button><button data-window-mark="end_ms" data-window-index="${i}">Use playhead for return</button></div>`}</div>`;
+function localDateISO() {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  return now.toISOString().slice(0, 10);
+}
+function windowRow(window, i, duration, finished, result) {
+  return `<div class="recovery-window" data-window-row="${i}"><div class="window-heading"><strong>RETURN ${String(i + 1).padStart(2, "0")}</strong><button class="text-action" data-window-seek="${i}">Watch ${icon("play")}</button></div><label class="field"><span>Movement onset / seconds (optional)</span><input type="number" min="0" max="${window.start_ms / 1000}" step="0.001" value="${window.onset_ms == null ? "" : window.onset_ms / 1000}" data-window-field="onset_ms" data-window-index="${i}" ${finished ? "disabled" : ""}></label><div class="form-row"><label class="field"><span>Peak / seconds</span><input type="number" min="0" max="${duration / 1000}" step="0.001" value="${window.start_ms / 1000}" data-window-field="start_ms" data-window-index="${i}" ${finished ? "disabled" : ""}></label><label class="field"><span>Return / seconds</span><input type="number" min="0" max="${duration / 1000}" step="0.001" value="${window.end_ms / 1000}" data-window-field="end_ms" data-window-index="${i}" ${finished ? "disabled" : ""}></label></div><div class="window-footer"><span id="window-duration-${i}">${((window.end_ms - window.start_ms) / 1000).toFixed(3)} s</span>${finished ? "" : `<button class="text-action" data-window-remove="${i}" aria-label="Remove recovery ${i + 1}">Remove ${icon("close")}</button>`}</div>${result ? repDetails(window, result) : ""}${finished ? "" : `<div class="window-marks"><button data-window-mark="start_ms" data-window-index="${i}">Use playhead for peak</button><button data-window-mark="end_ms" data-window-index="${i}">Use playhead for return</button></div>`}</div>`;
 }
 export function videoSetup(state) {
-  return `<div class="video-setup"><label class="field"><span>Session name</span><input id="video-title" maxlength="100" value="Lunge & recovery practice"></label><details class="disclosure"><summary>Keep one athlete in view ${icon("chevron")}</summary><p>For a solo clip, use the whole frame. For a busy scene, crop the upright preview to one fencer’s entire movement. Values are percentages of the frame.</p><div class="crop-fields">${[
+  return `<div class="video-setup"><label class="field"><span>Session name</span><input id="video-title" maxlength="100" value="Lunge & recovery practice"></label><label class="field"><span>Weapon</span><select id="weapon"><option value="foil">Foil</option><option value="epee">Épée</option><option value="sabre">Sabre</option></select></label><div class="form-row"><label class="field"><span>Weapon arm</span><select id="weapon-arm"><option value="unknown">Not specified</option><option value="right">Right</option><option value="left">Left</option></select></label><label class="field"><span>Front leg</span><select id="front-leg"><option value="unknown">Not specified</option><option value="right">Right</option><option value="left">Left</option></select></label></div><label class="field"><span>Facing in the video</span><select id="facing"><option value="unknown">Not specified</option><option value="right">Right side of screen</option><option value="left">Left side of screen</option></select></label><label class="helper"><input type="checkbox" id="initial-guard"> The first 1.5 seconds show my stationary en garde</label><details class="disclosure"><summary>Keep one athlete in view ${icon("chevron")}</summary><p>For a solo clip, use the whole frame. For a busy scene, crop the upright preview to one fencer’s entire movement. Values are percentages of the frame.</p><div class="crop-fields">${[
     ["x", "Left", 0],
     ["y", "Top", 0],
     ["width", "Width", 100],
@@ -86,6 +92,17 @@ export function setupVideoController(options) {
         );
         data.append("skill_level", state.preferences.skill);
         data.append("crop", JSON.stringify(crop));
+        data.append(
+          "capture_profile",
+          JSON.stringify({
+            weapon: document.getElementById("weapon").value,
+            weapon_arm: document.getElementById("weapon-arm").value,
+            front_leg: document.getElementById("front-leg").value,
+            facing: document.getElementById("facing").value,
+            initial_guard_confirmed:
+              document.getElementById("initial-guard").checked,
+          }),
+        );
         button.disabled = true;
         const job = await upload(data, (percent) => {
           button.textContent = `Uploading ${percent}%`;
@@ -96,6 +113,13 @@ export function setupVideoController(options) {
       } else if (button.dataset.videoJob) {
         await openJob(await api(videoPath(button.dataset.videoJob)));
         go("analysis");
+      } else if (button.hasAttribute("data-video-cancel")) {
+        await openJob(
+          await api(`${videoPath(state.videoJob.job_id)}/cancel`, {
+            method: "POST",
+          }),
+        );
+        render({ keepScroll: true });
       } else if (button.hasAttribute("data-video-retry")) {
         button.disabled = true;
         await openJob(
@@ -158,6 +182,8 @@ export function setupVideoController(options) {
             body: JSON.stringify({
               windows: state.videoWindows,
               notes: document.getElementById("video-notes").value,
+              practiced_on:
+                document.getElementById("video-practiced-on").value || null,
             }),
           },
         );
@@ -181,9 +207,10 @@ export function setupVideoController(options) {
     const target = event.target;
     if (!target.dataset.windowField) return;
     const i = Number(target.dataset.windowIndex);
-    controls.state.videoWindows[i][target.dataset.windowField] = Math.round(
-      Number(target.value) * 1000,
-    );
+    controls.state.videoWindows[i][target.dataset.windowField] =
+      target.value === "" && target.dataset.windowField === "onset_ms"
+        ? null
+        : Math.round(Number(target.value) * 1000);
     updateDuration(i);
   });
 }
@@ -195,10 +222,12 @@ function updateDuration(i) {
 function redrawWindows() {
   const { state } = controls;
   document.getElementById("window-list").innerHTML = state.videoWindows
-    .map((w, i) => windowRow(w, i, state.videoResult.duration_ms, false))
+    .map((w, i) =>
+      windowRow(w, i, state.videoResult.duration_ms, false, state.videoResult),
+    )
     .join("");
   document.querySelector("[data-video-accept]").disabled =
-    !state.videoWindows.length;
+    !state.videoWindows.length && !state.videoResult.clip_measurements?.length;
 }
 async function openJob(job) {
   const ticket = ++jobEpoch,
@@ -220,6 +249,7 @@ async function openJob(job) {
         start_ms: w.start_ms,
         end_ms: w.end_ms,
         candidate_id: w.candidate_id,
+        onset_ms: w.onset_ms ?? null,
       }),
     );
   } else if (["queued", "running", "receiving"].includes(job.status))
@@ -233,7 +263,9 @@ async function pollJob(ticket) {
     const job = await api(videoPath(state.videoJob.job_id));
     if (ticket !== jobEpoch) return;
     state.videoJob = job;
-    if (["review_ready", "completed", "failed"].includes(job.status)) {
+    if (
+      ["review_ready", "completed", "failed", "cancelled"].includes(job.status)
+    ) {
       await openJob(job);
       if (["analysis", "record"].includes(state.screen))
         render({ keepScroll: true });

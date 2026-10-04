@@ -9,6 +9,9 @@ import time
 from pathlib import Path
 from statistics import median
 
+from fencecoach.gestures import classify_windows
+from fencecoach.motion import clip_summary, enrich_candidates, footwork_proposals, frame_features
+from fencecoach.settings import settings
 from fencecoach.video_jobs import MAX_SECONDS, METHOD, MODEL_SHA
 from fencecoach.video_preview import build_preview, upright_frame
 
@@ -207,18 +210,9 @@ def analyze(jobs, job_id: str, model: Path):
                         jumps += 1
                         item["landmarks"] = []
                     elif quality >= 0.5:
-                        # Ratios use image pixels, correcting the normalized x/y aspect ratio.
-                        points = [(p[0] * w, p[1] * h) for p in landmarks]
-                        torso = (
-                            math.dist(points[11], points[23]) + math.dist(points[12], points[24])
-                        ) / 2
-                        if torso > 5:
+                        item["features"] = frame_features(landmarks, w, h)
+                        if item["features"]:
                             item["quality"] = round(quality, 4)
-                            item["features"] = dict(
-                                stance_ratio=round(abs(points[27][0] - points[28][0]) / torso, 4),
-                                left_knee_angle=angle(points[23], points[25], points[27]),
-                                right_knee_angle=angle(points[24], points[26], points[28]),
-                            )
                 frames.append(item)
                 if len(frames) % 12 == 0:
                     jobs.update(
@@ -230,7 +224,11 @@ def analyze(jobs, job_id: str, model: Path):
     if len(frames) < 6:
         raise ValueError("Use at least one second of decodable video.")
     candidates, baseline = proposals(frames)
+    if baseline is not None:
+        enrich_candidates(frames, candidates, baseline)
     warnings = [
+        "Angles and torso tilt are 2D estimates, not spinal straightness or a technique verdict.",
+        "Arm extension is measured at a proposed movement onset, not weapon contact or attack intent.",
         "Unvalidated 2D motion heuristic. Review every proposed interval.",
         "Start in en garde for 1.5 seconds; recovery means return to that stance band.",
         "Tracking quality is a visibility/presence proxy, not probability of correctness.",
@@ -247,6 +245,7 @@ def analyze(jobs, job_id: str, model: Path):
         warnings.append(
             "No complete recovery could be proposed reliably. Mark peak and recovery times manually, or try clearer footage."
         )
+    gestures, gesture_model = classify_windows(frames, settings.fencecoach_gesture_model)
     duration = preview["duration_ms"]
     payload = dict(
         job_id=job_id,
@@ -257,13 +256,21 @@ def analyze(jobs, job_id: str, model: Path):
         height=h,
         sample_interval_ms=SAMPLE_INTERVAL_MS,
         preview=preview,
-        pipeline_version="video-v2",
+        pipeline_version="video-v3",
         pose_input_max_dimension=960,
         performance=dict(
             pose_inference_ms=round(inference_ms),
             total_ms=round((time.perf_counter() - started) * 1000),
         ),
         frames=frames,
+        clip_measurements=clip_summary(frames),
+        initial_guard_measurements=clip_summary([f for f in frames if f["time_ms"] <= 1500])
+        if job.get("capture_profile", {}).get("initial_guard_confirmed")
+        else [],
+        capture_profile=job.get("capture_profile", {}),
+        footwork_events=footwork_proposals(frames, baseline, job.get("capture_profile", {})),
+        gestures=gestures,
+        gesture_model=gesture_model,
         candidates=candidates,
         baseline_stance_ratio=baseline,
         warnings=warnings,

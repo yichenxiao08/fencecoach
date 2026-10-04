@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -10,7 +10,7 @@ class VideoProvenance(BaseModel):
     job_id: str
     method: str
     model_sha256: str
-    annotation: Literal["reviewed_proposal", "manual_window"]
+    annotation: Literal["reviewed_proposal", "manual_window", "manual_geometry"]
     quality_note: str
 
 
@@ -59,7 +59,7 @@ class CoachingReport(BaseModel):
 
 
 class MetricSet(BaseModel):
-    metrics: list[MetricObservation] = Field(min_length=1, max_length=100)
+    metrics: list[MetricObservation] = Field(min_length=1, max_length=1000)
 
     @model_validator(mode="after")
     def unique_metric_ids(self):
@@ -74,6 +74,11 @@ class CoachRequest(MetricSet):
     question: str = Field(min_length=3, max_length=1500)
     skill_level: Literal["beginner", "intermediate"] = "beginner"
     focus_metric_id: str | None = Field(default=None, min_length=1, max_length=120)
+    training_history: list[dict] = Field(default_factory=list, max_length=30)
+    previous_reviews: list[dict] = Field(default_factory=list, max_length=6)
+    session_notes: str = Field(default="", max_length=2000)
+    session_history: list[dict] = Field(default_factory=list, max_length=10)
+    capture_profile: dict = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def focus_is_in_session(self):
@@ -88,6 +93,8 @@ class SessionCreate(MetricSet):
     title: str = Field(min_length=1, max_length=100)
     skill_level: Literal["beginner", "intermediate"] = "beginner"
     notes: str = Field(default="", max_length=2000)
+    practiced_on: date | None = None
+    capture_profile: dict = Field(default_factory=dict)
 
 
 class SessionRecord(SessionCreate):
@@ -99,7 +106,7 @@ class SessionRecord(SessionCreate):
 
 class ReportRequest(BaseModel):
     question: str = Field(min_length=3, max_length=1500)
-    mode: Literal["demo", "bedrock"] = "demo"
+    mode: Literal["demo", "bedrock", "local"] = "local"
     focus_metric_id: str | None = Field(default=None, min_length=1, max_length=120)
 
 
@@ -122,7 +129,7 @@ class RunRecord(BaseModel):
     created_at: datetime
     question: str
     focus_metric_id: str | None = None
-    mode: Literal["demo", "bedrock"]
+    mode: Literal["demo", "bedrock", "local"]
     model_id: str | None = None
     retrieval_method: str
     report: CoachingReport
@@ -133,3 +140,19 @@ class RunRecord(BaseModel):
     output_tokens: int
     citation_count: int
     citation_ids_valid: bool
+
+
+class TrainingLogCreate(BaseModel):
+    practiced_on: date
+    duration_minutes: int = Field(ge=1, le=720)
+    effort: int = Field(default=5, ge=1, le=10)
+    focus: str = Field(default="Footwork", min_length=1, max_length=100)
+    notes: str = Field(default="", max_length=2000)
+    session_id: str | None = Field(default=None, max_length=100)
+    drill_id: str | None = Field(default=None, max_length=100)
+
+
+class TrainingLog(TrainingLogCreate):
+    log_id: str
+    created_at: datetime
+    updated_at: datetime

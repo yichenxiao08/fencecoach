@@ -1,3 +1,5 @@
+> Updated implementation: see [core app v0.5](core-app.md). The earlier milestones below describe the original demo.
+
 # FenceCoach: project plan
 
 ## Goal

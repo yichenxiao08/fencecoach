@@ -10,6 +10,8 @@ function read(key, fallback) {
 export const state = {
   config: {},
   sessions: [],
+  logs: [],
+  plans: [],
   session: null,
   runs: [],
   run: null,
@@ -21,7 +23,7 @@ export const state = {
   progressRange: "week",
   trendKey: "",
   libraryFilter: "all",
-  mode: "demo",
+  mode: "local",
   question:
     "Review my recovery measurements and suggest one focus for next practice.",
   preferences: read("fencecoach.preferences", {
@@ -70,11 +72,20 @@ export function savePreferences() {
   }
 }
 export async function initStore() {
-  const [config, sessions] = await Promise.all([
+  const [config, sessions, logs, plans] = await Promise.all([
     api("/api/config"),
     api("/api/sessions"),
+    api("/api/training-logs"),
+    api("/api/practice-plans"),
   ]);
   state.config = config;
+  state.logs = logs;
+  state.plans = plans;
+  state.mode = config.local_ready
+    ? "local"
+    : config.bedrock_ready
+      ? "bedrock"
+      : "demo";
   state.sessions = sessions;
   let saved;
   try {
@@ -153,7 +164,7 @@ export async function generateReport(question) {
   ];
   state.generating = true;
   try {
-    const run = await api(`${sessionPath(id)}/reports`, {
+    const job = await api(`${sessionPath(id)}/coaching-jobs`, {
       method: "POST",
       body: JSON.stringify({
         question,
@@ -161,12 +172,65 @@ export async function generateReport(question) {
         focus_metric_id: focus?.metric_id,
       }),
     });
+    state.coachingJob = job;
+    try {
+      localStorage.setItem("fencecoach.coachingJob", job.job_id);
+    } catch {}
+    const run = await waitForCoaching(job.job_id);
     if (state.session?.session_id === id) {
       state.runs.unshift(run);
       state.run = run;
       state.question = "";
     }
     return run;
+  } finally {
+    state.generating = false;
+  }
+}
+
+export async function waitForCoaching(id) {
+  const started = Date.now();
+  while (Date.now() - started < 20 * 60 * 1000) {
+    const job = await api(`/api/coaching-jobs/${encodeURIComponent(id)}`);
+    state.coachingJob = job;
+    const stage = document.getElementById("coaching-stage");
+    if (stage) stage.textContent = job.stage;
+    if (job.status === "completed") {
+      try {
+        localStorage.removeItem("fencecoach.coachingJob");
+      } catch {}
+      return api(`/api/reports/${encodeURIComponent(job.run_id)}`);
+    }
+    if (job.status === "failed") {
+      try {
+        localStorage.removeItem("fencecoach.coachingJob");
+      } catch {}
+      throw new Error(job.error || "Coaching request failed. Try again.");
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+  }
+  throw new Error(
+    "Your coaching request is still running. Reload to reconnect to its progress.",
+  );
+}
+
+export async function resumeCoaching(onState = () => {}) {
+  let id;
+  try {
+    id = localStorage.getItem("fencecoach.coachingJob");
+  } catch {}
+  if (!id) return;
+  const job = await api(`/api/coaching-jobs/${encodeURIComponent(id)}`);
+  if (state.session?.session_id !== job.session_id)
+    await selectSession(job.session_id);
+  state.generating = true;
+  onState();
+  try {
+    const run = await waitForCoaching(id);
+    if (state.session?.session_id === run.session_id) {
+      state.runs = await api(`${sessionPath(run.session_id)}/reports`);
+      state.run = run;
+    }
   } finally {
     state.generating = false;
   }

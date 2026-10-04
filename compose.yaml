@@ -1,14 +1,68 @@
 services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: fencecoach
+      POSTGRES_USER: fencecoach
+      POSTGRES_PASSWORD: ${FENCECOACH_POSTGRES_PASSWORD:?Set FENCECOACH_POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U fencecoach -d fencecoach"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  ollama:
+    image: ollama/ollama:0.35.1
+    volumes:
+      - ollama-models:/root/.ollama
+    restart: unless-stopped
   fencecoach:
-    build: .
+    build:
+      context: .
+      args:
+        VIDEO: "true"
+    image: fencecoach:local
     ports:
       - "127.0.0.1:8000:8000"
-    environment:
+    environment: &app-environment
+      FENCECOACH_DATABASE_URL: postgresql://fencecoach:${FENCECOACH_POSTGRES_PASSWORD}@postgres/fencecoach
+      FENCECOACH_VIDEO_WORKER: "false"
+      FENCECOACH_COACHING_WORKER: "false"
+      FENCECOACH_VIDEO_DIR: /app/data/videos
+      FENCECOACH_POSE_MODEL: /app/models/pose_landmarker_full.task
+      FENCECOACH_GESTURE_MODEL: /app/models/gestures.json
+      FENCECOACH_CHAT_PROVIDER: ${FENCECOACH_CHAT_PROVIDER:-local}
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_CHAT_MODEL: ${OLLAMA_CHAT_MODEL:-qwen3:4b}
       AWS_REGION: ${AWS_REGION:-us-east-1}
       BEDROCK_CHAT_MODEL_ID: ${BEDROCK_CHAT_MODEL_ID:-}
       BEDROCK_EMBEDDING_MODEL_ID: ${BEDROCK_EMBEDDING_MODEL_ID:-}
-    volumes:
+    volumes: &app-volumes
       - fencecoach-data:/app/data
+      - ./models:/app/models:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    restart: unless-stopped
+  worker:
+    image: fencecoach:local
+    command: [python, -m, fencecoach.worker]
+    healthcheck:
+      disable: true
+    environment:
+      <<: *app-environment
+      FENCECOACH_WORKER_CONCURRENCY: "1"
+      FENCECOACH_COACHING_CONCURRENCY: "1"
+    volumes: *app-volumes
+    depends_on:
+      fencecoach:
+        condition: service_healthy
     restart: unless-stopped
 volumes:
   fencecoach-data:
+  postgres-data:
+  ollama-models:

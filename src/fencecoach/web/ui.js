@@ -67,7 +67,11 @@ export function displayMetric(metric) {
     : { value: pretty(metric.value), unit: metric.unit };
 }
 export function dayKey(value) {
-  const dt = new Date(value);
+  const dt = new Date(
+    typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)
+      ? value + "T12:00:00"
+      : value,
+  );
   return `${dt.getFullYear()}-${dt.getMonth() + 1}-${dt.getDate()}`;
 }
 export function periodStart(range) {
@@ -77,8 +81,24 @@ export function periodStart(range) {
   else now.setDate(now.getDate() - ((now.getDay() + 6) % 7));
   return now;
 }
-export function practiceStats(sessions) {
-  const real = sessions.filter((s) => !s.is_demo),
+export function practiceStats(sessions, logs = []) {
+  const linked = new Set(logs.map((l) => l.session_id).filter(Boolean));
+  const real = [
+      ...sessions
+        .filter((s) => !s.is_demo && !linked.has(s.session_id))
+        .map((s) => ({
+          ...s,
+          created_at: s.practiced_on
+            ? s.practiced_on + "T12:00:00"
+            : s.created_at,
+        })),
+      ...logs.map((l) => ({
+        ...l,
+        title: l.focus,
+        metrics: [],
+        created_at: l.practiced_on + "T12:00:00",
+      })),
+    ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
     week = real.filter((s) => new Date(s.created_at) >= periodStart("week"));
   const days = new Set(real.map((s) => dayKey(s.created_at)));
   let streak = 0;
