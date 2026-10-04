@@ -22,7 +22,7 @@ from fencecoach.settings import settings
 logger = logging.getLogger(__name__)
 app = FastAPI(
     title="FenceCoach",
-    version="0.2.0",
+    version="0.3.0",
     description="Cited coaching reports over measured fencing-session data.",
 )
 repository = Repository(settings.fencecoach_db_path)
@@ -37,7 +37,7 @@ def dashboard():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "version": "0.2.0"}
+    return {"status": "ok", "version": "0.3.0"}
 
 
 @app.get("/api/config")
@@ -102,11 +102,16 @@ def _report_or_error(request: CoachRequest, mode: str):
 @app.post("/api/sessions/{session_id}/reports", response_model=RunRecord, status_code=201)
 def create_report(session_id: str, data: ReportRequest):
     session = get_session(session_id)
+    if data.focus_metric_id and not any(
+        metric.metric_id == data.focus_metric_id for metric in session.metrics
+    ):
+        raise HTTPException(422, "The selected measurement is not in this session.")
     request = CoachRequest(
         session_id=session.session_id,
         question=data.question,
         skill_level=session.skill_level,
         metrics=session.metrics,
+        focus_metric_id=data.focus_metric_id,
     )
     return repository.save_run(_report_or_error(request, data.mode))
 

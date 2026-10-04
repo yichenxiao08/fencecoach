@@ -1,0 +1,33 @@
+:root {
+  --surface: #fff;
+  --bg: #faf9f6;
+  --text: #232320;
+  --muted: #74746d;
+  --accent: #d92e37;
+  --accent-strong: #bf202c;
+  --soft: #f3ede9;
+  --line: #e7e3dc;
+  --success: #28775b;
+  --success-soft: #e8f2ec;
+  --warning: #ae7034;
+  --display: "Barlow Condensed", sans-serif;
+  --body: "DM Sans", "Segoe UI", sans-serif;
+  color-scheme: light;
+  font-synthesis: none;
+}
+.studio {
+  --surface: #1b202a;
+  --bg: #0e121a;
+  --text: #f1f4fa;
+  --muted: #a0aabd;
+  --accent: #ff626b;
+  --accent-strong: #ff7d83;
+  --soft: #2c202b;
+  --line: #293142;
+  --success: #74c4a0;
+  --success-soft: #173329;
+  --warning: #e2b477;
+  --display: "Space Grotesk", sans-serif;
+  --body: "Space Grotesk", "Segoe UI", sans-serif;
+  color-scheme: dark;
+}

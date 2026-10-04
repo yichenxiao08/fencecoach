@@ -1,406 +1,506 @@
-"use strict";
-const $ = (id) => document.getElementById(id);
-const escapeHTML = (value) =>
-  String(value ?? "").replace(
-    /[&<>"']/g,
-    (c) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
-        c
-      ],
-  );
-const pretty = (value) =>
-  Number(value).toLocaleString(undefined, { maximumFractionDigits: 3 });
-let sessions = [],
-  current = null,
-  runs = [],
-  selectedRun = null,
-  config = {},
-  epoch = 0,
-  generating = false;
+import { $, e, icon, clock } from "./ui.js";
+import { api, downloadJSON, downloadBlob } from "./api-client.js";
+import {
+  state,
+  initStore,
+  selectSession,
+  loadSample,
+  importSession,
+  generateReport,
+  savePreferences,
+  restoreRunFocus,
+} from "./store.js";
+import { screens } from "./views.js";
+import { metricEvidence, selectedMetrics } from "./components.js";
+import { findDrill } from "./practice-library.js";
+import {
+  capture,
+  openCamera,
+  mountCamera,
+  startRecording,
+  finishRecording,
+  closeCamera,
+  validateClip,
+  saveClip,
+  loadClip,
+  setClip,
+  getClipURL,
+  getClip,
+} from "./media.js";
 
-async function api(path, options = {}) {
-  const response = await fetch(path, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
-  const data = await response.json();
-  if (!response.ok) {
-    let message = data.detail || "Request failed.";
-    if (Array.isArray(message))
-      message = message
-        .map((e) => `${e.loc.slice(1).join(".")}: ${e.msg}`)
-        .join("\n");
-    throw new Error(message);
-  }
-  return data;
-}
-function notice(text) {
+const navigation = [
+  ["train", "target", "Train"],
+  ["review", "play", "Review"],
+  ["record", "camera", "Record"],
+  ["progress", "chart", "Progress"],
+  ["coach", "chat", "Coach"],
+];
+let toastTimer,
+  mediaEpoch = 0,
+  draftURL = null,
+  cameraEpoch = 0,
+  finishPending = false;
+function notice(text = "") {
+  state.error = text;
   $("notice").textContent = text;
-  $("notice").classList.toggle("hidden", !text);
+  $("notice").hidden = !text;
 }
-function date(value) {
-  return new Date(value).toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+function toast(text) {
+  $("toast").textContent = text;
+  $("toast").hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => ($("toast").hidden = true), 3500);
 }
-function download(data, filename) {
-  const url = URL.createObjectURL(
-    new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }),
-  );
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+function route() {
+  const name = location.hash.slice(1).split("?")[0];
+  return screens[name] ? name : "train";
 }
-async function refreshSessions() {
-  sessions = await api("/api/sessions");
-  $("session-list").innerHTML =
-    sessions
+function render({ keepScroll = false, focus = false } = {}) {
+  const scroll = window.scrollY;
+  const dark = ["review", "coach"].includes(state.screen);
+  document.body.className = dark ? "studio" : "piste";
+  document.querySelector('meta[name="theme-color"]').content = dark
+    ? "#0e121a"
+    : "#faf9f6";
+  const active = ["drill", "library"].includes(state.screen)
+    ? "train"
+    : state.screen;
+  for (const id of ["desktop-nav", "mobile-nav"])
+    $("" + id).innerHTML = navigation
       .map(
-        (s) =>
-          `<button class="session-item ${current?.session_id === s.session_id ? "selected" : ""}" data-session="${escapeHTML(s.session_id)}"><strong>${escapeHTML(s.title)}</strong><small>${s.is_demo ? "Sample · " : ""}${date(s.created_at)}</small></button>`,
+        ([name, symbol, title]) =>
+          `<button data-go="${name}" class="${active === name ? "active" : ""} ${name === "record" ? "record-nav" : ""}" ${active === name ? 'aria-current="page"' : ""}>${icon(symbol)}<span>${title}</span></button>`,
       )
-      .join("") ||
-    '<p class="sidebar-muted">Your sessions will appear here.</p>';
-  $("session-picker").innerHTML = sessions
-    .map(
-      (s) =>
-        `<option value="${escapeHTML(s.session_id)}">${escapeHTML(s.title)}</option>`,
-    )
-    .join("");
-  if (current) $("session-picker").value = current.session_id;
+      .join("");
   document
-    .querySelectorAll("[data-session]")
+    .querySelectorAll('button[data-go="settings"]')
     .forEach((button) =>
-      button.addEventListener("click", () =>
-        selectSession(button.dataset.session),
+      button.setAttribute(
+        "aria-current",
+        state.screen === "settings" ? "page" : "false",
       ),
     );
+  $("screen").className = `screen screen-${state.screen}`;
+  $("screen").innerHTML = state.loading
+    ? '<div class="loading-state"><span class="spinner"></span><h1>Getting your training space ready.</h1><p>Loading your saved sessions…</p></div>'
+    : screens[state.screen](state);
+  document.title = `FenceCoach · ${state.screen === "drill" ? findDrill(state.drillId).name : state.screen.charAt(0).toUpperCase() + state.screen.slice(1)}`;
+  mountMedia();
+  if (!keepScroll) window.scrollTo({ top: 0, behavior: "instant" });
+  else window.scrollTo({ top: scroll, behavior: "instant" });
+  if (focus) $("screen").focus({ preventScroll: true });
 }
-async function selectSession(id) {
-  const ticket = ++epoch;
-  try {
-    const session = await api(`/api/sessions/${encodeURIComponent(id)}`);
-    if (ticket !== epoch) return;
-    current = session;
-    runs = [];
-    selectedRun = null;
-    notice("");
-    $("empty-state").classList.add("hidden");
-    $("workspace").classList.remove("hidden");
-    $("report-section").classList.add("hidden");
-    renderSession();
-    localStorage.setItem("fencecoach.session", id);
-    await refreshSessions();
-    const saved = await api(`/api/sessions/${encodeURIComponent(id)}/reports`);
-    if (ticket !== epoch) return;
-    runs = saved;
-    if (runs.length) renderReport(runs[0]);
-  } catch (error) {
-    if (ticket === epoch) notice(error.message);
+function mountMedia() {
+  if (state.screen === "record") {
+    mountCamera($("camera-preview"));
+    if ($("draft-preview") && draftURL) $("draft-preview").src = draftURL;
+  }
+  if (state.screen === "review" && $("replay-video") && getClipURL()) {
+    const video = $("replay-video");
+    video.src = getClipURL();
+    video.onloadedmetadata = () => {
+      const metric = selectedMetrics(state).metric;
+      if (metric?.start_ms != null && metric.start_ms / 1000 < video.duration)
+        video.currentTime = metric.start_ms / 1000;
+    };
+    video.onerror = () =>
+      notice(
+        "This browser couldn’t play the attached video. Try an MP4 or WebM clip supported by your browser.",
+      );
   }
 }
-function renderSession() {
-  $("session-title").textContent = current.title;
-  $("session-meta").textContent =
-    `${date(current.created_at)} · Foil · ${current.skill_level} · ${current.metrics.length} measurements`;
-  $("session-kind").textContent = current.is_demo
-    ? "SAMPLE DATA"
-    : "IMPORTED DATA";
-  $("session-notes").textContent = current.notes;
-  $("sample-banner").classList.toggle("hidden", !current.is_demo);
-  const metrics = current.metrics;
-  const groups = new Map();
-  metrics.forEach((m) => {
-    const key = `${m.name}|${m.unit}`;
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(m);
-  });
-  const group = [...groups.values()].sort((a, b) => b.length - a.length)[0];
-  const mean = group.reduce((sum, m) => sum + m.value, 0) / group.length;
-  const confidence =
-    metrics.reduce((sum, m) => sum + m.confidence, 0) / metrics.length;
-  const low = metrics.filter((m) => m.confidence < 0.65).length;
-  const stat = (label, value, unit, sub) =>
-    `<div class="stat-card"><span class="label">${escapeHTML(label)}</span><span class="value">${escapeHTML(value)}</span><span class="unit">${escapeHTML(unit)}</span><div class="sub">${escapeHTML(sub)}</div></div>`;
-  $("stats").innerHTML =
-    stat(
-      group[0].name.replaceAll("_", " "),
-      pretty(mean),
-      group[0].unit,
-      `Mean of ${group.length} supplied values`,
-    ) +
-    stat("Measurements", metrics.length, "", "Timestamped session evidence") +
-    stat(
-      "Mean confidence",
-      Math.round(confidence * 100),
-      "%",
-      "Provided by your measurement source",
-    ) +
-    stat("Low confidence", low, "", "Below 65% · review before concluding");
-  $("metric-count").textContent = `${metrics.length} values`;
-  $("metric-table").innerHTML = metrics
-    .map(
-      (m) =>
-        `<tr id="metric-${escapeHTML(m.metric_id)}"><td>${escapeHTML(m.name.replaceAll("_", " "))}<small>${escapeHTML(m.metric_id)}${m.start_ms != null ? ` · ${(m.start_ms / 1000).toFixed(1)}s` : ""}</small></td><td>${pretty(m.value)} ${escapeHTML(m.unit)}${m.baseline_value != null ? `<small>Baseline ${pretty(m.baseline_value)} ${escapeHTML(m.unit)}</small>` : ""}</td><td><span class="confidence ${m.confidence < 0.65 ? "low" : ""}">${Math.round(m.confidence * 100)}%</span></td></tr>`,
-    )
-    .join("");
-  renderChart(group);
-}
-function renderChart(group) {
-  if (group.length < 2) {
-    $("chart").innerHTML = "";
+function go(screen) {
+  if (!screens[screen]) return;
+  if (state.screen === "record" && capture.recording && screen !== "record") {
+    toast("Finish your recording before leaving this practice.");
     return;
   }
-  const values = group.map((m) => m.value),
-    min = Math.min(...values),
-    max = Math.max(...values);
-  const range = max - min || 1;
-  const points = values.map((v, i) => [
-    12 + (i * 476) / (values.length - 1),
-    88 - ((v - min) / range) * 64,
-  ]);
-  const line = points.map((p) => p.join(",")).join(" ");
-  $("chart").innerHTML =
-    `<p class="chart-title">${escapeHTML(group[0].name.replaceAll("_", " "))} / ${escapeHTML(group[0].unit)}</p><svg class="metric-chart" role="img" aria-label="Measurement values across repetitions" viewBox="0 0 500 110" preserveAspectRatio="none"><path d="M12 25H488 M12 58H488 M12 90H488" stroke="#edf0e7" fill="none"/><polygon points="12,100 ${line} 488,100" fill="#f2f7e8"/><polyline points="${line}" fill="none" stroke="#93b95d" stroke-width="2.5"/>${points.map((p, i) => `<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="${group[i].confidence < 0.65 ? "#cba875" : "#93b95d"}"><title>${escapeHTML(group[i].metric_id)}: ${pretty(values[i])} ${escapeHTML(group[i].unit)}</title></circle>`).join("")}</svg><div class="chart-labels"><span>First value · ${pretty(values[0])}</span><span>Last value · ${pretty(values.at(-1))}</span></div>`;
+  if (screen !== state.screen && state.screen === "record") {
+    cameraEpoch++;
+    closeCamera();
+  }
+  if (location.hash !== `#${screen}`) location.hash = screen;
+  else {
+    state.screen = screen;
+    render({ focus: true });
+  }
 }
-function chips(refs) {
-  return refs
-    .map(
-      (ref) =>
-        `<button class="evidence-chip" data-source-type="${escapeHTML(ref.source_type)}" data-source-id="${escapeHTML(ref.source_id)}" title="${escapeHTML(ref.note)}">↗ ${escapeHTML(ref.source_id)}</button>`,
-    )
-    .join("");
-}
-function renderReport(run) {
-  selectedRun = run;
-  $("report-section").classList.remove("hidden");
-  $("report-history").innerHTML = runs
-    .map(
-      (r) =>
-        `<option value="${r.run_id}">${date(r.created_at)} · ${r.mode === "demo" ? "Demo" : "Live AI"}</option>`,
-    )
-    .join("");
-  $("report-history").value = run.run_id;
-  $("report-badge").textContent =
-    run.mode === "demo" ? "DEMO · NO LLM CALLS" : "LIVE AI · BEDROCK";
-  $("report-question").textContent = `You asked: ${run.question}`;
-  $("report-summary").textContent = run.report.summary;
-  $("observations").innerHTML =
-    run.report.observations
-      .map(
-        (o) =>
-          `<div class="observation"><p>${escapeHTML(o.claim)}</p>${chips(o.evidence)}</div>`,
-      )
-      .join("") ||
-    '<p class="muted">No supported observations were produced.</p>';
-  const drill = run.report.next_drill;
-  $("drill").innerHTML = drill
-    ? `<div class="drill-card"><p class="eyebrow">NEXT PRACTICE</p><h4>${escapeHTML(drill.name)}</h4><ol>${drill.steps.map((s) => `<li>${escapeHTML(s)}</li>`).join("")}</ol><p class="criterion">Look for: ${escapeHTML(drill.success_criterion)}</p>${chips(drill.evidence)}</div>`
-    : '<p class="muted">No drill recommended from the available evidence.</p>';
-  const stat = (label, value) =>
-    `<div class="run-stat"><span>${escapeHTML(label)}</span><b>${escapeHTML(value)}</b></div>`;
-  $("run-stats").innerHTML =
-    stat(
-      "Source ID check",
-      run.citation_ids_valid
-        ? `${run.citation_count} references checked`
-        : "Failed",
-    ) +
-    stat("Report latency", `${pretty(run.latency_ms)} ms`) +
-    stat(
-      "Retrieval",
-      run.retrieval_method === "bm25"
-        ? "BM25 · local notes"
-        : "Bedrock embeddings",
-    ) +
-    stat("Tokens (in / out)", `${run.input_tokens} / ${run.output_tokens}`) +
-    (run.model_id ? stat("Model", run.model_id) : "");
-  $("sources").innerHTML =
-    run.sources
-      .map(
-        (s) =>
-          `<div class="source-card" id="source-${escapeHTML(s.source_id)}"><strong>${escapeHTML(s.source)}</strong><p>${escapeHTML(s.text)}</p><code>${escapeHTML(s.source_id)}</code></div>`,
-      )
-      .join("") || '<p class="muted">No matching notes retrieved.</p>';
-  $("trace").innerHTML = run.trace
-    .map(
-      (t) =>
-        `<li class="trace-item"><strong>${escapeHTML(t.step)} · ${pretty(t.elapsed_ms)} ms</strong><small>${escapeHTML(t.detail)}</small></li>`,
-    )
-    .join("");
-  $("limitations").innerHTML = run.report.limitations
-    .map((l) => `<li>${escapeHTML(l)}</li>`)
-    .join("");
-  document.querySelectorAll("[data-source-id]").forEach((button) =>
-    button.addEventListener("click", () => {
-      const prefix =
-        button.dataset.sourceType === "metric" ? "metric-" : "source-";
-      const target = $(prefix + button.dataset.sourceId);
-      if (!target) return;
-      const detail = target.closest("details");
-      if (detail) detail.open = true;
-      target.scrollIntoView({ behavior: "smooth", block: "center" });
-      target.classList.add("highlight");
-      setTimeout(() => target.classList.remove("highlight"), 2200);
-    }),
-  );
-}
-async function loadDemo() {
-  $("load-demo").disabled = true;
+window.addEventListener("hashchange", () => {
+  const next = route();
+  if (capture.recording && next !== "record") {
+    history.replaceState(null, "", "#record");
+    toast("Finish your recording before leaving this practice.");
+    return;
+  }
+  if (state.screen === "record" && next !== "record") {
+    cameraEpoch++;
+    closeCamera();
+  }
+  state.screen = next;
+  render({ focus: true });
+});
+window.addEventListener("beforeunload", (event) => {
+  if (capture.recording || state.draftClip) {
+    event.preventDefault();
+    event.returnValue = "";
+  }
+});
+window.addEventListener("pagehide", () => closeCamera());
+
+async function withBusy(action) {
+  if (state.busy) return;
+  state.busy = true;
+  notice();
+  document
+    .querySelectorAll("[data-sample],[data-session],#session-picker")
+    .forEach((button) => (button.disabled = true));
   try {
-    const session = await api("/api/demo", { method: "POST" });
-    await selectSession(session.session_id);
+    await action();
   } catch (error) {
     notice(error.message);
   } finally {
-    $("load-demo").disabled = false;
+    state.busy = false;
+    document
+      .querySelectorAll("[data-sample],[data-session],#session-picker")
+      .forEach((button) => (button.disabled = false));
   }
 }
-function openImport() {
-  $("import-error").textContent = "";
-  if (!$("session-json").value)
-    $("session-json").value = JSON.stringify(
-      {
-        title: "My practice session",
-        skill_level: "beginner",
-        notes: "",
-        metrics: [
-          {
-            metric_id: "rep-01-recovery",
-            name: "recovery_time",
-            value: 920,
-            unit: "ms",
-            confidence: 0.88,
-            baseline_value: 1050,
-            start_ms: 2400,
-            end_ms: 3320,
-          },
-        ],
-      },
-      null,
-      2,
-    );
-  $("import-dialog").showModal();
+async function select(id) {
+  const success = await selectSession(id);
+  if (!success) return;
+  await sessionMedia(id);
 }
-$("coach-form").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (!current || generating) return;
-  const sessionId = current.session_id;
-  generating = true;
-  $("generate-button").disabled = true;
-  $("generate-button").textContent = "Reviewing…";
-  notice("");
+async function sessionMedia(id) {
+  const ticket = ++mediaEpoch;
+  setClip(null);
   try {
-    const run = await api(
-      `/api/sessions/${encodeURIComponent(sessionId)}/reports`,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          question: $("question").value,
-          mode: $("mode").value,
-        }),
-      },
-    );
-    if (current.session_id === sessionId) {
-      runs.unshift(run);
-      renderReport(run);
-      $("report-section").scrollIntoView({
-        behavior: "smooth",
-        block: "start",
+    const clip = await loadClip(id);
+    if (ticket === mediaEpoch && state.session?.session_id === id)
+      setClip(clip);
+  } catch (error) {
+    if (ticket === mediaEpoch) toast(error.message);
+  }
+}
+function setDraft(blob) {
+  if (draftURL) URL.revokeObjectURL(draftURL);
+  state.draftClip = blob;
+  draftURL = blob ? URL.createObjectURL(blob) : null;
+}
+async function finish() {
+  if (finishPending || !capture.recording) return;
+  finishPending = true;
+  try {
+    const clip = await finishRecording();
+    closeCamera();
+    validateClip(clip);
+    setDraft(clip);
+    render({ keepScroll: true });
+    toast("Practice recorded. Add your measurements to save a session.");
+  } catch (error) {
+    closeCamera();
+    notice(error.message);
+    render({ keepScroll: true });
+  } finally {
+    finishPending = false;
+  }
+}
+
+function openImport() {
+  const dialog = $("import-dialog");
+  dialog.innerHTML = `<form id="import-form"><div class="dialog-heading"><div><p class="eyebrow">YOUR PRACTICE</p><h2 id="import-title">Bring in a session.</h2></div><button class="icon-button" type="button" data-close="import-dialog" aria-label="Close import">${icon("close")}</button></div><p class="helper">Import measured values from your analysis tool. ${state.draftClip ? "Your recorded clip will be saved with this session on this device." : "You can attach a video after importing."}</p><label class="file-field">${icon("upload")}<span>Choose a session JSON file</span><input id="json-file" type="file" accept=".json,application/json" /></label><label class="field"><span>Session name</span><input name="title" id="import-name" maxlength="100" value="${e(findDrill(state.drillId).name + " / practice")}" required /></label><div class="form-row"><label class="field"><span>Skill level</span><select name="skill" id="import-skill"><option value="beginner" ${state.preferences.skill === "beginner" ? "selected" : ""}>Beginner</option><option value="intermediate" ${state.preferences.skill === "intermediate" ? "selected" : ""}>Intermediate</option></select></label><label class="field"><span>Practice notes</span><input id="import-notes" name="notes" maxlength="2000" placeholder="One focus from today…" /></label></div><label class="field"><span>Measurement JSON</span><textarea id="session-json" rows="7" required spellcheck="false" placeholder='[{"metric_id":"rep-01-recovery","name":"recovery_time","value":920,"unit":"ms","confidence":0.88}]'></textarea></label><p class="helper">Paste a measurements array or a complete session object. Use your own values and source confidence. Optional: baseline_value, start_ms, end_ms.</p><a class="text-action" href="/static/sample-session.json" download="sample-session.json">Download a synthetic format example ${icon("arrow")}</a><p class="form-error" id="import-error" role="alert"></p><button class="primary-action" id="save-session" type="submit">Save practice session ${icon("arrow")}</button></form>`;
+  dialog.showModal();
+}
+function showEvidence(type, id) {
+  let body;
+  if (type === "metric") {
+    const metric = state.session?.metrics.find((m) => m.metric_id === id);
+    if (!metric) return;
+    body = metricEvidence(metric, state.session.is_demo);
+  } else {
+    const source = state.run?.sources.find((s) => s.source_id === id);
+    if (!source) return;
+    body = `<p class="eyebrow">RETRIEVED PRACTICE NOTE</p><h3>${e(source.source)}</h3><p class="source-text">${e(source.text)}</p><code>${e(source.source_id)}</code><p class="helper">Authored development notes. Review technique guidance with your fencing coach.</p>`;
+  }
+  const dialog = $("evidence-dialog");
+  dialog.innerHTML = `<div class="dialog-heading"><h2 id="evidence-title">Behind the cue.</h2><button class="icon-button" data-close="evidence-dialog" aria-label="Close evidence">${icon("close")}</button></div>${body}`;
+  dialog.showModal();
+}
+function setMetric(index) {
+  const { group } = selectedMetrics(state);
+  state.metricIndex = Math.max(0, Math.min(group.length - 1, index));
+  render({ keepScroll: true });
+}
+
+document.addEventListener("click", async (event) => {
+  if (event.target.closest(".skip-link")) {
+    event.preventDefault();
+    $("screen").focus();
+    return;
+  }
+  const button = event.target.closest("button");
+  if (!button || button.disabled) return;
+  try {
+    if (button.dataset.close) $(button.dataset.close).close();
+    else if (button.dataset.go) go(button.dataset.go);
+    else if (button.dataset.drill) {
+      state.drillId = button.dataset.drill;
+      go("drill");
+    } else if (button.hasAttribute("data-sample"))
+      await withBusy(async () => {
+        await loadSample();
+        await sessionMedia(state.session.session_id);
+        go("review");
       });
+    else if (button.dataset.session)
+      await withBusy(async () => {
+        await select(button.dataset.session);
+        go("review");
+      });
+    else if (button.hasAttribute("data-import")) openImport();
+    else if (button.hasAttribute("data-save-drill")) {
+      const saved = state.preferences.saved,
+        index = saved.indexOf(state.drillId);
+      if (index < 0) saved.push(state.drillId);
+      else saved.splice(index, 1);
+      savePreferences();
+      render({ keepScroll: true });
+      toast(
+        index < 0
+          ? "Drill saved to your practice library."
+          : "Drill removed from saved practice.",
+      );
+    } else if (button.dataset.filter) {
+      state.libraryFilter = button.dataset.filter;
+      render({ keepScroll: true });
+    } else if (button.dataset.range) {
+      state.progressRange = button.dataset.range;
+      render({ keepScroll: true });
+    } else if (button.hasAttribute("data-metric"))
+      setMetric(Number(button.dataset.metric));
+    else if (button.hasAttribute("data-sample-overlay")) {
+      state.sampleOverlay = !state.sampleOverlay;
+      render({ keepScroll: true });
+    } else if (button.dataset.evidenceId)
+      showEvidence(button.dataset.evidenceType, button.dataset.evidenceId);
+    else if (button.dataset.question) {
+      state.question = button.dataset.question;
+      $("question").value = button.dataset.question;
+      $("question").focus();
+    } else if (button.hasAttribute("data-export-session") && state.session)
+      downloadJSON(state.session, `session-${state.session.session_id}.json`);
+    else if (button.hasAttribute("data-export-report") && state.run)
+      downloadJSON(state.run, `review-${state.run.run_id}.json`);
+    else if (button.hasAttribute("data-enable-camera")) {
+      const ticket = ++cameraEpoch;
+      button.disabled = true;
+      try {
+        await openCamera();
+        if (ticket !== cameraEpoch || state.screen !== "record") closeCamera();
+        else render({ keepScroll: true });
+      } finally {
+        button.disabled = false;
+      }
+    } else if (button.hasAttribute("data-start-recording")) {
+      if (document.querySelector(".setup-checks input:not(:checked)")) {
+        toast(
+          "Check your framing, fixed camera and clear space before recording.",
+        );
+        return;
+      }
+      startRecording(
+        (seconds) => {
+          if ($("record-clock")) $("record-clock").textContent = clock(seconds);
+        },
+        finish,
+        (message) => {
+          render({ keepScroll: true });
+          notice(message);
+        },
+      );
+      render({ keepScroll: true });
+    } else if (button.hasAttribute("data-finish-recording")) await finish();
+    else if (button.hasAttribute("data-upload-draft")) $("draft-file").click();
+    else if (button.hasAttribute("data-attach-video"))
+      $("session-video-file").click();
+    else if (button.hasAttribute("data-download-clip") && getClip())
+      downloadBlob(
+        getClip(),
+        `fencecoach-${state.session.session_id}.${getClip().type.includes("mp4") ? "mp4" : "webm"}`,
+      );
+    else if (button.hasAttribute("data-download-draft") && state.draftClip)
+      downloadBlob(
+        state.draftClip,
+        `fencecoach-practice.${state.draftClip.type.includes("mp4") ? "mp4" : "webm"}`,
+      );
+    else if (button.hasAttribute("data-clear-draft")) {
+      setDraft(null);
+      render({ keepScroll: true });
     }
   } catch (error) {
     notice(error.message);
-  } finally {
-    generating = false;
-    $("generate-button").disabled = false;
-    $("generate-button").textContent = "Review session ↗";
   }
 });
-$("import-form").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  $("import-error").textContent = "";
-  $("save-session").disabled = true;
+document.addEventListener("change", async (event) => {
+  const target = event.target;
   try {
-    const session = await api("/api/sessions", {
-      method: "POST",
-      body: JSON.stringify(JSON.parse($("session-json").value)),
-    });
-    $("import-dialog").close();
-    await selectSession(session.session_id);
-  } catch (error) {
-    $("import-error").textContent = error.message;
-  } finally {
-    $("save-session").disabled = false;
-  }
-});
-$("json-file").addEventListener("change", async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-  if (file.size > 1024 * 1024) {
-    $("import-error").textContent =
-      "Please use a session file smaller than 1 MB.";
-    return;
-  }
-  $("session-json").value = await file.text();
-});
-$("report-history").addEventListener("change", (event) => {
-  const run = runs.find((r) => r.run_id === event.target.value);
-  if (run) renderReport(run);
-});
-$("mode").addEventListener("change", () => {
-  $("mode-note").textContent =
-    $("mode").value === "demo"
-      ? "Demo summarizes supplied values. No LLM or paid API calls."
-      : "Live AI uses your configured AWS model. Provider charges apply; source IDs are checked before saving.";
-});
-$("load-demo").addEventListener("click", loadDemo);
-$("session-picker").addEventListener("change", (event) =>
-  selectSession(event.target.value),
-);
-$("import-button").addEventListener("click", openImport);
-$("new-session").addEventListener("click", openImport);
-$("close-import").addEventListener("click", () => $("import-dialog").close());
-$("download-session").addEventListener(
-  "click",
-  () => current && download(current, `session-${current.session_id}.json`),
-);
-$("download-report").addEventListener(
-  "click",
-  () =>
-    selectedRun && download(selectedRun, `report-${selectedRun.run_id}.json`),
-);
-$("dashboard-nav").addEventListener("click", () =>
-  window.scrollTo({ top: 0, behavior: "smooth" }),
-);
-document.querySelectorAll("[data-question]").forEach((button) =>
-  button.addEventListener("click", () => {
-    $("question").value = button.dataset.question;
-    $("question").focus();
-  }),
-);
-async function init() {
-  try {
-    config = await api("/api/config");
-    const option = $("mode").querySelector('[value="bedrock"]');
-    option.disabled = !config.live_configured;
-    if (!config.live_configured)
-      option.textContent = "Live AI · configure AWS first";
-    await refreshSessions();
-    const saved = localStorage.getItem("fencecoach.session");
-    if (sessions.length)
-      await selectSession(
-        sessions.some((s) => s.session_id === saved)
-          ? saved
-          : sessions[0].session_id,
+    if (target.id === "session-picker")
+      await withBusy(async () => {
+        await select(target.value);
+        render({ keepScroll: true });
+      });
+    else if (target.id === "metric-group") {
+      state.groupIndex = Number(target.value);
+      state.metricIndex = 0;
+      render({ keepScroll: true });
+    } else if (target.id === "rep-slider") setMetric(Number(target.value));
+    else if (target.id === "mode") {
+      state.mode = target.value;
+      render({ keepScroll: true });
+    } else if (target.id === "report-history") {
+      state.run =
+        state.runs.find((run) => run.run_id === target.value) || state.run;
+      restoreRunFocus();
+      render({ keepScroll: true });
+    } else if (target.id === "trend-picker") {
+      state.trendKey = target.value;
+      render({ keepScroll: true });
+    } else if (target.id === "json-file") {
+      const file = target.files[0];
+      if (!file) return;
+      if (file.size > 1024 * 1024)
+        throw new Error("Choose a JSON file smaller than 1 MB.");
+      const data = JSON.parse(await file.text());
+      if (!data || (!Array.isArray(data) && !Array.isArray(data.metrics)))
+        throw new Error(
+          "This JSON file needs a measurements array or a session object with metrics.",
+        );
+      if (!Array.isArray(data)) {
+        if (data.title) $("import-name").value = data.title;
+        if (["beginner", "intermediate"].includes(data.skill_level))
+          $("import-skill").value = data.skill_level;
+        $("import-notes").value = data.notes || "";
+      }
+      $("session-json").value = JSON.stringify(
+        Array.isArray(data) ? data : data.metrics,
+        null,
+        2,
       );
+      $("import-error").textContent = "";
+    } else if (target.id === "draft-file") {
+      const file = target.files[0];
+      if (!file) return;
+      validateClip(file);
+      cameraEpoch++;
+      closeCamera();
+      setDraft(file);
+      render({ keepScroll: true });
+    } else if (target.id === "session-video-file") {
+      const file = target.files[0];
+      if (!file || !state.session) return;
+      validateClip(file);
+      const id = state.session.session_id;
+      await saveClip(id, file);
+      if (state.session?.session_id === id) {
+        setClip(file);
+        render({ keepScroll: true });
+      }
+      toast("Video saved with this session on this device.");
+    }
   } catch (error) {
-    notice(error.message);
+    if (target.id === "json-file")
+      $("import-error").textContent = error.message;
+    else notice(error.message);
+  }
+});
+document.addEventListener("input", (event) => {
+  if (event.target.id === "question") state.question = event.target.value;
+});
+document.addEventListener("submit", async (event) => {
+  if (event.target.id === "coach-form") {
+    event.preventDefault();
+    if (state.generating || !state.session) return;
+    const question = $("question").value.trim();
+    if (question.length < 3) return;
+    notice();
+    state.question = question;
+    const pending = generateReport(question);
+    render({ keepScroll: true });
+    try {
+      await pending;
+      render({ keepScroll: true });
+      toast("Your coaching review has been saved.");
+    } catch (error) {
+      state.question = question;
+      render({ keepScroll: true });
+      $("question").value = question;
+      notice(error.message);
+    }
+  } else if (event.target.id === "import-form") {
+    event.preventDefault();
+    const button = $("save-session");
+    button.disabled = true;
+    $("import-error").textContent = "";
+    let saved = null;
+    try {
+      const parsed = JSON.parse($("session-json").value),
+        metrics = Array.isArray(parsed) ? parsed : parsed.metrics;
+      const draft = state.draftClip;
+      saved = await importSession({
+        title: $("import-name").value.trim(),
+        skill_level: $("import-skill").value,
+        notes: $("import-notes").value,
+        metrics,
+      });
+      if (draft) {
+        try {
+          await saveClip(saved.session_id, draft);
+          setDraft(null);
+        } catch (error) {
+          notice(error.message);
+          toast(
+            "Measurements saved. Download your video from Record to keep a copy.",
+          );
+        }
+      }
+      await sessionMedia(saved.session_id);
+      $("import-dialog").close();
+      go("review");
+      if (!state.error) toast("Practice saved. Your review is ready.");
+    } catch (error) {
+      if (saved) {
+        $("import-dialog").close();
+        notice(error.message);
+        go("review");
+      } else $("import-error").textContent = error.message;
+    } finally {
+      button.disabled = false;
+    }
+  } else if (event.target.id === "settings-form") {
+    event.preventDefault();
+    const data = new FormData(event.target);
+    try {
+      state.preferences.goal = Number(data.get("goal"));
+      state.preferences.skill = data.get("skill");
+      savePreferences();
+      toast("Practice preferences saved.");
+    } catch (error) {
+      notice(error.message);
+    }
+  }
+});
+async function init() {
+  state.screen = route();
+  render();
+  try {
+    await initStore();
+    if (state.session) await sessionMedia(state.session.session_id);
+    render();
+  } catch (error) {
+    state.loading = false;
+    render();
+    notice(
+      `${error.message} Make sure the FenceCoach server is running, then reload.`,
+    );
   }
 }
 init();

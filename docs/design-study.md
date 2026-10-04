@@ -10,11 +10,13 @@ Patterns adapted for fencing: make starting practice obvious; use visual activit
 
 | Direction | Visual approach | Main experience | Tradeoff |
 | --- | --- | --- | --- |
-| Piste | White, coral, condensed athletic type, large photography | Choose a drill and start practice | More energetic and visually dense |
-| Replay Studio | Charcoal, blue, large footage and precise metrics | Select a repetition and understand one takeaway | Strong review experience, less welcoming as a home screen |
+| Piste | White, red, condensed athletic type, large photography | Choose a drill and start practice | More energetic and visually dense |
+| Replay Studio | Charcoal, red, large footage and precise metrics | Select a repetition and understand one takeaway | Strong review experience, less welcoming as a home screen |
 | Training Journal | Ivory, terracotta, serif headings, quiet spacing | Set one daily intention and build a practice habit | Less emphasis on the technical analysis |
 
 **Recommendation:** use Piste's home and drill discovery, with Replay Studio's immersive review. Keep the navigation and camera flow consistent. Borrow the journal's emphasis on one focus per session.
+
+The selected direction is now the working app at `/`: Piste training, dark Replay Studio review and coaching, and a journal section for real imported practice history. The palette has been updated to fencing-strip red, with green used for completion. The standalone prototypes below remain illustrative comparison artifacts.
 
 ## Clickable flows
 

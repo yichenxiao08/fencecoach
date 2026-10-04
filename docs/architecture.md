@@ -6,10 +6,20 @@
 - `repository.py`: SQLite sessions and report runs, with per-operation connections and foreign keys.
 - `coach/graph.py`: evidence gathering, retrieval, agent tool routing, structured report formatting and citation validation.
 - `rag/knowledge.py`: Markdown chunking with stable per-file chunk IDs, local BM25 and optional Bedrock embeddings.
-- `web/`: responsive browser client. It imports measurement JSON and calls the same API a future mobile client can use.
+- `web/`: browser client using native ES modules and the same API a future mobile client can use. `app.js` owns routing and events; `store.js` owns session and report state; `api-client.js` owns HTTP and downloads; `views.js` renders screens; `components.js` contains shared session, report and evidence components; `ui.js` supplies formatting and charts; `practice-library.js` contains drill content; `media.js` owns camera and IndexedDB clip handling. `theme.css` defines the light/dark red palettes and fonts; `design-system.css` defines reusable components and responsive layouts; `styles.css` is the app's stylesheet entry point. The separate prototype gallery remains an archived design reference.
 - `evaluation.py`: repeatable retrieval measurement over authored relevance labels.
 
 Every run is persisted with the question, sources, model, retrieval method, activity trace, latency, token usage and report. Token counts are what the provider exposes, not cost estimates. Source ID validation checks provenance membership; it does not validate the reasoning or expertise of a coaching claim. Failed generation is not saved as a successful run.
+
+Reports optionally accept `focus_metric_id`. It must belong to the session and is passed to evidence gathering, report formatting and saved run metadata. Demo output places that measurement first; live prompts ask for one supported next practice focus. Existing clients and historical JSON remain compatible because the field is optional.
+
+## Training interface and media
+
+The navigation is Train, Review, Record, Progress and Coach. Drill discovery and setup use the Piste visual language, while Review and Coach use Replay Studio's darker surfaces. Red is the primary accent in both; completion uses green. The journal provides a calmer progress section without switching the core navigation or duplicating functionality.
+
+Camera recording uses browser media APIs, with audio disabled and an explicit enable action. Clips are separate from the coaching evidence: they stay in IndexedDB under a session ID and are never sent to the model or backend. A draft stays in memory until measurement import associates it with a server session. Browser storage can be cleared or evicted, so the UI offers downloads. Automatic video/pose analysis and cross-device video synchronization are not implemented.
+
+Progress excludes built-in demo sessions and computes session counts and calendar days from import timestamps in the viewer's local timezone. Trends group exact metric names and units and compute a mean per session; camera comparability remains a user judgment. The sessions endpoint currently limits history to the latest 200 entries.
 
 Knowledge IDs stay stable while a file's chunk boundaries stay stable. Historical runs store the actual retrieved text, so editing a knowledge file does not rewrite old reports. More robust content-hash/version IDs can be added before a larger production corpus.
 

@@ -1,6 +1,6 @@
 # FenceCoach
 
-A fencing practice dashboard with an evidence-grounded LLM coaching workflow. The API and browser interface are separate so a mobile client can reuse the same coaching backend later.
+A fencing training app with an evidence-grounded LLM coaching workflow. The interface combines Piste's athletic training screens, Replay Studio's immersive review, and a deliberate practice journal. The primary color is fencing-strip red, with green reserved for completed practice. The API and browser interface are separate so a mobile client can reuse the coaching backend later.
 
 ## Try it locally
 
@@ -13,9 +13,13 @@ py -m venv .venv
 .\.venv\Scripts\python.exe -m uvicorn fencecoach.api:app --host 127.0.0.1 --port 8000
 ```
 
-Open http://127.0.0.1:8000 and select **Explore sample session**, then **Review session**. The sample measurements are synthetic. Demo mode runs the actual LangGraph workflow with a deterministic report formatter: it makes no LLM calls, requires no accounts, and does not answer open-ended questions. No video has been analyzed.
+Open http://127.0.0.1:8000. **Start training** opens a guided drill and camera setup. **Explore sample review** opens a synthetic session. In **Coach**, submit a question to generate a saved review. Demo mode runs the actual LangGraph workflow with a deterministic report formatter: it makes no LLM calls, requires no accounts, and does not interpret open-ended questions. Sample imagery and landmarks are illustrative, not analyzed footage.
 
-Import your own measurements using **Import session**. Download the sample JSON in the import dialog for the format. Each measurement needs a unique source ID, name, value, unit and confidence. Timestamps and a same-unit baseline are optional. Sessions and reports survive restarts in local SQLite at `data/fencecoach.sqlite3`. You can export a session or report as JSON.
+Import your own measurements using **Import a session**. The import dialog accepts a measurement array or complete session JSON; download its synthetic format example if needed. Each measurement needs a unique source ID, name, value, unit and confidence. Timestamps and a same-unit baseline are optional. Sessions and reports survive restarts in local SQLite at `data/fencecoach.sqlite3`. Export them from the review's measurement details or the coach's report details.
+
+**Record** supports real, silent camera capture in browsers with `getUserMedia` and `MediaRecorder`, or an existing video upload. Camera access starts on an explicit click. Captured drafts remain in memory until a measurement session is imported; attached clips are stored in this browser's IndexedDB, not uploaded to the server. Download a copy before clearing browser data or switching devices. Recording is limited to ten minutes; clip storage accepts up to 200 MB. The app does not extract measurements from video yet.
+
+**Review** groups actual measurements by name and unit, preserves their source IDs and confidence, and seeks attached footage to supplied time windows. **Coach** passes the selected measurement ID into the existing graph while retaining the whole session as context. Saved reviews retain that focus. **Progress** computes imported session counts, weekly practice days and means for matching measurement names and units. Built-in sample sessions do not count toward goals. Dates are import dates; matching units do not establish comparable recording conditions. History currently uses the most recent 200 stored sessions.
 
 ## Design prototypes
 
@@ -61,8 +65,8 @@ Tests cover persistence, malformed measurements, invalid citations, low-confiden
 
 ## Current scope and next steps
 
-Implemented: responsive dashboard, measurement JSON import, synthetic demo, session/report storage, RAG over authored notes, live agent adapter, source ID validation, run metadata, JSON exports, retrieval evaluation, Docker packaging and CI.
+Implemented: responsive training app with a red design system, drill library and saved drills, camera capture and device-local clip playback, measurement JSON import, actual practice history, synthetic demo, session/report storage, RAG over authored notes, live agent adapter, selected-measurement context, source ID validation, run metadata, JSON/video exports, retrieval evaluation, Docker packaging and CI.
 
-Next: a video/pose worker with annotated event windows; a larger labeled evaluation set; session history tools; stable MCP tool transport; authentication and private object storage; cloud deployment. Video analysis, a mobile installer, MCP transport and public hosting are not implemented yet. This local prototype has no authentication and should remain on localhost.
+Next: a video/pose worker with annotated event windows; a larger labeled evaluation set; session history tools; stable MCP tool transport; authentication and private object storage for synced clips; cloud deployment. Automatic video analysis, a mobile installer, MCP transport and public hosting are not implemented yet. This local app has no authentication and should remain on localhost.
 
 See [the project plan](docs/project-plan.md) and [architecture notes](docs/architecture.md).

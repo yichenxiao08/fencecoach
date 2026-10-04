@@ -64,6 +64,15 @@ class CoachRequest(MetricSet):
     session_id: str = Field(min_length=1, max_length=100)
     question: str = Field(min_length=3, max_length=1500)
     skill_level: Literal["beginner", "intermediate"] = "beginner"
+    focus_metric_id: str | None = Field(default=None, min_length=1, max_length=120)
+
+    @model_validator(mode="after")
+    def focus_is_in_session(self):
+        if self.focus_metric_id and not any(
+            metric.metric_id == self.focus_metric_id for metric in self.metrics
+        ):
+            raise ValueError("focus_metric_id must refer to a measurement in this session")
+        return self
 
 
 class SessionCreate(MetricSet):
@@ -81,6 +90,7 @@ class SessionRecord(SessionCreate):
 class ReportRequest(BaseModel):
     question: str = Field(min_length=3, max_length=1500)
     mode: Literal["demo", "bedrock"] = "demo"
+    focus_metric_id: str | None = Field(default=None, min_length=1, max_length=120)
 
 
 class KnowledgeSource(BaseModel):
@@ -101,6 +111,7 @@ class RunRecord(BaseModel):
     session_id: str
     created_at: datetime
     question: str
+    focus_metric_id: str | None = None
     mode: Literal["demo", "bedrock"]
     model_id: str | None = None
     retrieval_method: str
