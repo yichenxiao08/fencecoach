@@ -15,7 +15,7 @@ export function drillRows(list = drills, saved = []) {
 }
 export function sessionRows(sessions, currentId = null) {
   if (!sessions.length)
-    return '<p class="empty-note">Your practice history starts with your first imported session.</p>';
+    return '<p class="empty-note">Your practice history starts with your first saved session.</p>';
   return `<div class="practice-log">${sessions.map((session) => `<button data-session="${e(session.session_id)}" class="${currentId === session.session_id ? "selected" : ""}"><span class="log-icon">${icon(session.is_demo ? "spark" : "target")}</span><div><strong>${e(session.title)}</strong><small>${e(date(session.created_at))} · ${session.metrics.length} measurements${session.is_demo ? " · Sample" : ""}</small></div>${icon("chevron")}</button>`).join("")}</div>`;
 }
 export function sessionPicker(state) {
@@ -38,7 +38,7 @@ export function metricEvidence(metric, isDemo) {
     });
     baseline = `Supplied baseline: ${base.value} ${base.unit}. Change: ${Number(delta.value) > 0 ? "+" : ""}${delta.value} ${delta.unit}. A numeric change alone does not establish better technique.`;
   }
-  return `<div class="source-explainer"><p class="eyebrow">${isDemo ? "SYNTHETIC SAMPLE" : "SUPPLIED MEASUREMENT"}</p><h3>${e(label(metric.name))}</h3><p><strong>${e(display.value)} ${e(display.unit)}</strong> · ${Math.round(metric.confidence * 100)}% supplied confidence.</p><p>${e(baseline)}</p>${metric.start_ms != null ? `<p>Marked window: ${pretty(metric.start_ms / 1000)}s${metric.end_ms != null ? `–${pretty(metric.end_ms / 1000)}s` : ""}.</p>` : ""}<code>${e(metric.metric_id)}</code></div>`;
+  return `<div class="source-explainer"><p class="eyebrow">${metric.provenance ? "REVIEWED VIDEO TIMING" : isDemo ? "SYNTHETIC SAMPLE" : "SUPPLIED MEASUREMENT"}</p><h3>${e(label(metric.name))}</h3><p><strong>${e(display.value)} ${e(display.unit)}</strong> · ${metric.provenance?.annotation === "manual_window" ? "Manually marked / tracking quality unavailable" : `${Math.round(metric.confidence * 100)}% ${metric.provenance ? "landmark quality" : "supplied confidence"}`}.</p><p>${e(baseline)}</p>${metric.start_ms != null ? `<p>Marked window: ${pretty(metric.start_ms / 1000)}s${metric.end_ms != null ? `–${pretty(metric.end_ms / 1000)}s` : ""}.</p>` : ""}${metric.provenance ? `<p>${e(metric.provenance.quality_note)}</p><p>Method: ${e(metric.provenance.method)} · ${e(metric.provenance.annotation.replaceAll("_", " "))}</p>` : ""}<code>${e(metric.metric_id)}</code></div>`;
 }
 export function evidenceChips(refs = []) {
   return `<div class="evidence-chips">${refs.map((ref) => `<button data-evidence-type="${e(ref.source_type)}" data-evidence-id="${e(ref.source_id)}" title="${e(ref.note)}">${icon("arrow")} ${e(ref.source_id)}</button>`).join("")}</div>`;

@@ -35,6 +35,12 @@ export const state = {
   busy: false,
   error: "",
   draftClip: null,
+  videoJob: null,
+  videoResult: null,
+  videoWindows: [],
+  videoJobs: [],
+  reviewResult: null,
+  videoOverlay: true,
 };
 // Treat persisted preferences as user data, not trusted renderable markup.
 const stored = state.preferences || {};
@@ -125,7 +131,7 @@ export function restoreRunFocus() {
   }
 }
 export async function loadSample() {
-  const existing = state.sessions.find((s) => s.is_demo);
+  const existing = state.sessions.find((s) => s.is_demo && !s.video_job_id);
   const session = existing || (await api("/api/demo", { method: "POST" }));
   if (!existing) await refreshSessions();
   await selectSession(session.session_id);

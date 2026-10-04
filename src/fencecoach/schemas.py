@@ -6,6 +6,14 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
+class VideoProvenance(BaseModel):
+    job_id: str
+    method: str
+    model_sha256: str
+    annotation: Literal["reviewed_proposal", "manual_window"]
+    quality_note: str
+
+
 class MetricObservation(BaseModel):
     model_config = ConfigDict(allow_inf_nan=False)
     metric_id: str = Field(min_length=1, max_length=120)
@@ -16,6 +24,7 @@ class MetricObservation(BaseModel):
     baseline_value: float | None = None
     start_ms: int | None = Field(default=None, ge=0)
     end_ms: int | None = Field(default=None, ge=0)
+    provenance: VideoProvenance | None = None
 
     @model_validator(mode="after")
     def check_window(self):
@@ -85,6 +94,7 @@ class SessionRecord(SessionCreate):
     session_id: str
     created_at: datetime
     is_demo: bool = False
+    video_job_id: str | None = None
 
 
 class ReportRequest(BaseModel):

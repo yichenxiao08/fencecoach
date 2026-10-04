@@ -4,6 +4,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
 COPY requirements.lock ./
 RUN pip install --no-cache-dir -r requirements.lock
+ARG VIDEO=false
+COPY requirements-video.lock ./
+RUN if [ "$VIDEO" = "true" ]; then \
+      apt-get update && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 libasound2 \
+      && rm -rf /var/lib/apt/lists/* \
+      && pip install --no-cache-dir -r requirements-video.lock; \
+    fi
 COPY pyproject.toml README.md ./
 COPY src ./src
 COPY knowledge ./knowledge

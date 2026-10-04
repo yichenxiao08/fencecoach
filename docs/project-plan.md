@@ -48,7 +48,7 @@ Use LangChain for model integrations, tools, embeddings, and retrievers. Use Lan
 
 ## Data and safety
 
-- Use your own training clips or footage with the participants' consent.
+- Use your own clips with participants' consent, or attributed footage whose license permits the intended use.
 - Keep raw footage local for the first phase; store only derived metrics in examples.
 - Store model IDs, source names, timestamps, confidence, and evaluation results so answers are reproducible.
 - If pose confidence is weak, report insufficient evidence instead of giving a technique correction.
@@ -66,6 +66,6 @@ Write résumé bullets only after measuring these values.
 
 ## Build status (October 3, 2026)
 
-The first interactive build now includes a responsive browser dashboard, session measurement imports, local SQLite history, a no-account demo, the live Bedrock adapter, BM25 or optional embedding retrieval, bounded agent tooling, structured reports, citation ID validation, trace/usage metadata, exports, a retrieval baseline script, Docker packaging and GitHub Actions checks. Video measurement extraction remains the next major product milestone.
+The first interactive build now includes a responsive browser dashboard, session measurement imports, local SQLite history, a no-account demo, the live Bedrock adapter, BM25 or optional embedding retrieval, bounded agent tooling, structured reports, citation ID validation, trace/usage metadata, exports, a retrieval baseline script, Docker packaging and GitHub Actions checks. A first local video slice now adds bounded uploads, a durable job queue, MediaPipe landmarks, PyAV previews, recovery proposals, human interval review and metric provenance. See [the pipeline notes](video-pipeline.md). Independent event labels and timing evaluation are the next milestone; this detector has no accuracy benchmark yet.
 
-The backend API is separate from the browser client. A hosted, installable web app can reuse this interface; a native mobile client can call the same session and report endpoints. Authentication, session ownership, private media storage and queued video analysis are required before multi-user deployment.
+The backend API is separate from the browser client. A hosted, installable web app can reuse this interface; a native mobile client can call the same session and report endpoints. Authentication, session ownership, private object storage and a distributed job queue are required before multi-user deployment.

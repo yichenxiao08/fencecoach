@@ -7,6 +7,7 @@
 - `coach/graph.py`: evidence gathering, retrieval, agent tool routing, structured report formatting and citation validation.
 - `rag/knowledge.py`: Markdown chunking with stable per-file chunk IDs, local BM25 and optional Bedrock embeddings.
 - `web/`: browser client using native ES modules and the same API a future mobile client can use. `app.js` owns routing and events; `store.js` owns session and report state; `api-client.js` owns HTTP and downloads; `views.js` renders screens; `components.js` contains shared session, report and evidence components; `ui.js` supplies formatting and charts; `practice-library.js` contains drill content; `media.js` owns camera and IndexedDB clip handling. `theme.css` defines the light/dark red palettes and fonts; `design-system.css` defines reusable components and responsive layouts; `styles.css` is the app's stylesheet entry point. The separate prototype gallery remains an archived design reference.
+- `video_api.py`, `video_jobs.py`, `video_pipeline.py`: bounded upload, durable local queue, supervised pose extraction, browser preview, recovery proposals and reviewed measurement provenance. See [video pipeline](video-pipeline.md).
 - `evaluation.py`: repeatable retrieval measurement over authored relevance labels.
 
 Every run is persisted with the question, sources, model, retrieval method, activity trace, latency, token usage and report. Token counts are what the provider exposes, not cost estimates. Source ID validation checks provenance membership; it does not validate the reasoning or expertise of a coaching claim. Failed generation is not saved as a successful run.
@@ -17,9 +18,9 @@ Reports optionally accept `focus_metric_id`. It must belong to the session and i
 
 The navigation is Train, Review, Record, Progress and Coach. Drill discovery and setup use the Piste visual language, while Review and Coach use Replay Studio's darker surfaces. Red is the primary accent in both; completion uses green. The journal provides a calmer progress section without switching the core navigation or duplicating functionality.
 
-Camera recording uses browser media APIs, with audio disabled and an explicit enable action. Clips are separate from the coaching evidence: they stay in IndexedDB under a session ID and are never sent to the model or backend. A draft stays in memory until measurement import associates it with a server session. Browser storage can be cleared or evicted, so the UI offers downloads. Automatic video/pose analysis and cross-device video synchronization are not implemented.
+Camera recording uses browser media APIs with audio disabled, an explicit enable action and a two-minute limit. Drafts remain in memory. Analyze uploads a clip to the local server and creates a durable job; unprocessed attachments still use IndexedDB. Real pose landmarks and proposed recovery timings require review before becoming metrics. The existing coaching graph receives approved metrics and provenance rather than raw footage. `web/video.js` and `video.css` provide analysis progress, overlays, editable intervals and job history. Cross-device synchronization is not implemented.
 
-Progress excludes built-in demo sessions and computes session counts and calendar days from import timestamps in the viewer's local timezone. Trends group exact metric names and units and compute a mean per session; camera comparability remains a user judgment. The sessions endpoint currently limits history to the latest 200 entries.
+Progress excludes built-in demo sessions and computes session counts and calendar days from session creation timestamps in the viewer's local timezone. Trends group exact metric names and units and compute a mean per session; camera comparability remains a user judgment. The sessions endpoint currently limits history to the latest 200 entries.
 
 Knowledge IDs stay stable while a file's chunk boundaries stay stable. Historical runs store the actual retrieved text, so editing a knowledge file does not rewrite old reports. More robust content-hash/version IDs can be added before a larger production corpus.
 
@@ -28,7 +29,7 @@ Knowledge IDs stay stable while a file's chunk boundaries stay stable. Historica
 1. Deploy one container to a cloud runtime with HTTPS. Keep model calls on the server. Set runtime permissions for model access.
 2. Replace local SQLite with a managed database or persistent-volume strategy suitable for the chosen runtime. A container filesystem is not permanent cloud storage, and local SQLite is not designed for replicated application instances.
 3. Add account authentication and enforce session ownership at every API endpoint. Store raw videos in private object storage with short-lived upload/download URLs.
-4. Analyze video using a queued worker, with durable job state and progress polling. Keep large media outside the JSON coaching request.
+4. Replace the local video supervisor with a cloud queue and worker pool. The existing job/status/result/review API can remain; keep large media outside the coaching request.
 5. Add per-user quotas, bounded upload limits, observed model costs, and monitoring before wider release.
 
 ## Phone app path

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fencecoach"
-version = "0.3.0"
+version = "0.4.0"
 description = "Evidence-grounded AI coaching for fencing practice"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -16,10 +16,12 @@ dependencies = [
   "langgraph>=1.0",
   "langchain-aws>=1.0",
   "langchain-text-splitters>=1.0",
+  "python-multipart==0.0.32",
 ]
 
 [project.optional-dependencies]
 dev = ["httpx>=0.28", "ruff==0.16.10"]
+video = ["mediapipe==1.0.1", "av==19.0.1"]
 
 [tool.setuptools.package-data]
 fencecoach = ["web/*"]

@@ -11,6 +11,7 @@ import {
   restoreRunFocus,
 } from "./store.js";
 import { screens } from "./views.js";
+import { setupVideoController, initVideo, mountPose } from "./video.js";
 import { metricEvidence, selectedMetrics } from "./components.js";
 import { findDrill } from "./practice-library.js";
 import {
@@ -40,6 +41,7 @@ let toastTimer,
   draftURL = null,
   cameraEpoch = 0,
   finishPending = false;
+let stopOverlay = () => {};
 function notice(text = "") {
   state.error = text;
   $("notice").textContent = text;
@@ -57,14 +59,17 @@ function route() {
 }
 function render({ keepScroll = false, focus = false } = {}) {
   const scroll = window.scrollY;
-  const dark = ["review", "coach"].includes(state.screen);
+  const dark = ["review", "coach", "analysis"].includes(state.screen);
   document.body.className = dark ? "studio" : "piste";
   document.querySelector('meta[name="theme-color"]').content = dark
     ? "#0e121a"
     : "#faf9f6";
-  const active = ["drill", "library"].includes(state.screen)
-    ? "train"
-    : state.screen;
+  const active =
+    state.screen === "analysis"
+      ? "review"
+      : ["drill", "library"].includes(state.screen)
+        ? "train"
+        : state.screen;
   for (const id of ["desktop-nav", "mobile-nav"])
     $("" + id).innerHTML = navigation
       .map(
@@ -91,13 +96,34 @@ function render({ keepScroll = false, focus = false } = {}) {
   if (focus) $("screen").focus({ preventScroll: true });
 }
 function mountMedia() {
+  stopOverlay();
+  if (state.screen === "analysis") {
+    stopOverlay = mountPose(
+      $("analysis-video"),
+      $("analysis-overlay"),
+      state.videoResult,
+      state,
+    );
+  }
   if (state.screen === "record") {
     mountCamera($("camera-preview"));
     if ($("draft-preview") && draftURL) $("draft-preview").src = draftURL;
   }
-  if (state.screen === "review" && $("replay-video") && getClipURL()) {
+  if (
+    state.screen === "review" &&
+    $("replay-video") &&
+    (state.session?.video_job_id || getClipURL())
+  ) {
     const video = $("replay-video");
-    video.src = getClipURL();
+    video.src = state.session.video_job_id
+      ? `/api/videos/${encodeURIComponent(state.session.video_job_id)}/preview`
+      : getClipURL();
+    stopOverlay = mountPose(
+      video,
+      $("review-overlay"),
+      state.reviewResult,
+      state,
+    );
     video.onloadedmetadata = () => {
       const metric = selectedMetrics(state).metric;
       if (metric?.start_ms != null && metric.start_ms / 1000 < video.duration)
@@ -173,6 +199,16 @@ async function select(id) {
 async function sessionMedia(id) {
   const ticket = ++mediaEpoch;
   setClip(null);
+  state.reviewResult = null;
+  if (state.session?.video_job_id) {
+    const session = state.session;
+    const result = await api(
+      `/api/videos/${encodeURIComponent(session.video_job_id)}/result`,
+    );
+    if (ticket === mediaEpoch && state.session?.session_id === id)
+      state.reviewResult = result;
+    return;
+  }
   try {
     const clip = await loadClip(id);
     if (ticket === mediaEpoch && state.session?.session_id === id)
@@ -195,7 +231,7 @@ async function finish() {
     validateClip(clip);
     setDraft(clip);
     render({ keepScroll: true });
-    toast("Practice recorded. Add your measurements to save a session.");
+    toast("Practice recorded. Analyze your clip to review its movement.");
   } catch (error) {
     closeCamera();
     notice(error.message);
@@ -493,6 +529,7 @@ async function init() {
   render();
   try {
     await initStore();
+    await initVideo();
     if (state.session) await sessionMedia(state.session.session_id);
     render();
   } catch (error) {
@@ -503,4 +540,5 @@ async function init() {
     );
   }
 }
+setupVideoController({ state, render, go, notice, select, setDraft });
 init();

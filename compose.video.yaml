@@ -1,0 +1,10 @@
+# Prepare local model/demo assets before starting this optional video image.
+services:
+  fencecoach:
+    build:
+      context: .
+      args:
+        VIDEO: "true"
+    volumes:
+      - ./models:/app/models:ro
+      - ./data/video-demo:/app/data/video-demo:ro

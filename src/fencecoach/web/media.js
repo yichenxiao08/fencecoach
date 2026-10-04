@@ -1,4 +1,4 @@
-// Clips remain on this device. JSON measurements and coaching stay on the API.
+// Drafts and unprocessed attachments stay in the browser until Analyze uploads a clip.
 const MAX_CLIP_BYTES = 200 * 1024 * 1024;
 let database,
   stream = null,
@@ -138,7 +138,7 @@ export function startRecording(onTick, onLimit, onError) {
     capture.elapsed = Math.floor((Date.now() - startedAt) / 1000);
     onTick(capture.elapsed);
     if (
-      capture.elapsed >= 600 ||
+      capture.elapsed >= 120 ||
       chunks.reduce((sum, chunk) => sum + chunk.size, 0) > MAX_CLIP_BYTES
     )
       onLimit();

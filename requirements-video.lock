@@ -1,0 +1,16 @@
+# Install alongside requirements.lock; optional local video worker dependencies.
+mediapipe==1.0.1
+av==19.0.1
+absl-py==2.5.0
+flatbuffers==25.12.19
+sounddevice==0.5.6
+cffi==2.1.1
+pycparser==3.0
+opencv-contrib-python==5.0.0.93
+matplotlib==3.11.2
+contourpy==1.4.0
+cycler==0.12.1
+fonttools==4.66.1
+kiwisolver==1.5.1
+pillow==12.3.0
+pyparsing==3.3.3

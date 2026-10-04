@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -18,14 +19,33 @@ from fencecoach.schemas import (
     SessionRecord,
 )
 from fencecoach.settings import settings
+from fencecoach.video_api import UploadLimit, video_router
+from fencecoach.video_jobs import VideoJobs, VideoWorker, availability
 
 logger = logging.getLogger(__name__)
+repository = Repository(settings.fencecoach_db_path)
+video_jobs = VideoJobs(settings.fencecoach_db_path, settings.fencecoach_video_dir)
+
+
+@asynccontextmanager
+async def lifespan(app):
+    repository.list_sessions()
+    worker = VideoWorker(video_jobs, settings.fencecoach_pose_model)
+    if settings.fencecoach_video_worker:
+        worker.start()
+    yield
+    if settings.fencecoach_video_worker:
+        worker.close()
+
+
 app = FastAPI(
     title="FenceCoach",
-    version="0.3.0",
+    version="0.4.0",
     description="Cited coaching reports over measured fencing-session data.",
+    lifespan=lifespan,
 )
-repository = Repository(settings.fencecoach_db_path)
+app.add_middleware(UploadLimit)
+app.include_router(video_router(video_jobs, settings))
 web = Path(__file__).parent / "web"
 app.mount("/static", StaticFiles(directory=web), name="static")
 
@@ -37,7 +57,7 @@ def dashboard():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "version": "0.3.0"}
+    return {"status": "ok", "version": "0.4.0"}
 
 
 @app.get("/api/config")
@@ -48,6 +68,13 @@ def configuration():
         "region": settings.aws_region,
         "model_id": settings.bedrock_chat_model_id or None,
         "demo_available": True,
+        "video": {
+            **availability(settings.fencecoach_pose_model),
+            "worker_enabled": settings.fencecoach_video_worker,
+            "demo_ready": (
+                settings.fencecoach_video_dir.parent / "video-demo" / "mit-jump-lunge.mp4"
+            ).is_file(),
+        },
     }
 
 
